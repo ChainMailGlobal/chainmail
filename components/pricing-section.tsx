@@ -147,7 +147,7 @@ export function PricingSection() {
                   className={`w-full py-3 text-base font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 bg-gradient-to-r ${plan.gradient} hover:shadow-lg text-white border-0`}
                   asChild
                 >
-                  <a href={plan.name === "Pro-Ent" ? "/contact" : "/demo"}>
+                  <a href={plan.name === "Pro-Ent" ? "/contact" : "/demo-v31"}>
                     {plan.name === "Pro-Ent" ? "Contact Sales" : "Get Started"}
                   </a>
                 </Button>

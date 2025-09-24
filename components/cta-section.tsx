@@ -50,7 +50,7 @@ export function CtaSection() {
               className="px-8 py-3 text-lg border-primary text-primary hover:bg-primary/5 bg-transparent"
               asChild
             >
-              <a href="/demo">Schedule a Demo</a>
+              <a href="/demo-v31">Schedule a Demo</a>
             </Button>
           </div>
 

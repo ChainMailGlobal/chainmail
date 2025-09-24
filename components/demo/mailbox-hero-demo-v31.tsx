@@ -1062,7 +1062,7 @@ export default function MailboxHeroDemoV31() {
         title: "Split-Screen Interface",
         description: "Customer face top, signature pad bottom",
         icon: Smartphone,
-        visual: "/split-screen-video-call-interface-with-customer.png",
+        visual: "/person-above-digital-signature-pad-interface.png", // Updated visual to show person above signature pad
       },
       {
         title: "Digital Signature Confidence",
@@ -1302,6 +1302,7 @@ export default function MailboxHeroDemoV31() {
                   <div className="space-y-2 text-emerald-800">
                     <div>• CMID Token: 0x7f8e9d...</div>
                     <div>• Blockchain: Ethereum</div>
+                    <div>• XRP Dual Chain Recordation</div>
                     <div>• Smart contract execution confirmed</div>
                     <div>• Compliance record immutably stored</div>
                   </div>

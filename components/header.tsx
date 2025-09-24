@@ -42,7 +42,7 @@ export function Header() {
           {/* Desktop CTA */}
           <div className="hidden md:block">
             <Button className="bg-primary hover:bg-primary/90 text-primary-foreground" asChild>
-              <a href="/cmragent">CMRAgent™</a>
+              <a href="/signup-v31">CMRAgent™</a>
             </Button>
           </div>
 
@@ -75,7 +75,7 @@ export function Header() {
               </a>
               <div className="px-3 py-2">
                 <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" asChild>
-                  <a href="/cmragent">CMRAgent™</a>
+                  <a href="/signup-v31">CMRAgent™</a>
                 </Button>
               </div>
             </div>
