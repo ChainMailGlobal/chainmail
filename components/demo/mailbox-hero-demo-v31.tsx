@@ -157,31 +157,14 @@ export default function MailboxHeroDemoV31() {
             <p className="text-lg text-slate-600 mb-8">
               Patent-pending technology designed for USPS DMM 508.1.8 regulatory innovation
             </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-              <Button
-                onClick={handleStartDemo}
-                size="lg"
-                className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white px-8 py-3"
-              >
-                Launch Interactive Demo
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                className="px-8 py-3 bg-transparent"
-                onClick={() => window.open("https://mailboxhero.app", "_blank")}
-              >
-                Visit Live Platform
-              </Button>
-            </div>
           </div>
 
           <div className="grid lg:grid-cols-3 gap-8 mb-8 px-4">
-            {versions.map((version, index) => (
+            {versions.slice(0, 3).map((version, index) => (
               <Card
                 key={version.id}
-                className="relative overflow-hidden hover:shadow-xl transition-all duration-300 border-0 shadow-lg hover:scale-105"
+                className="relative overflow-hidden hover:shadow-xl transition-all duration-300 border-0 shadow-lg hover:scale-105 cursor-pointer"
+                onClick={() => handleVersionSelect(version.id)} // Added click handler to launch experience directly
               >
                 <div className={`absolute top-0 left-0 right-0 h-2 bg-gradient-to-r ${version.gradient}`} />
                 <CardHeader className="pb-4">
@@ -195,7 +178,7 @@ export default function MailboxHeroDemoV31() {
                   <CardDescription className="text-base leading-relaxed">{version.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ul className="space-y-3">
+                  <ul className="space-y-3 mb-4">
                     {version.features.map((feature, featureIndex) => (
                       <li key={featureIndex} className="flex items-center text-sm">
                         <div className={`h-2 w-2 rounded-full ${version.color} mr-3 flex-shrink-0`} />
@@ -203,9 +186,63 @@ export default function MailboxHeroDemoV31() {
                       </li>
                     ))}
                   </ul>
+                  <button
+                    className={`w-full bg-gradient-to-r ${version.gradient} hover:opacity-90 text-white py-3 px-4 rounded-lg font-medium transition-all duration-200`}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleVersionSelect(version.id)
+                    }}
+                  >
+                    Launch {version.id.toUpperCase()} Experience
+                  </button>
                 </CardContent>
               </Card>
             ))}
+          </div>
+
+          <div className="px-4 mb-8">
+            <Card
+              className="relative overflow-hidden hover:shadow-xl transition-all duration-300 border-0 shadow-lg hover:scale-105 cursor-pointer"
+              onClick={() => handleVersionSelect("cmragent")}
+            >
+              <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-slate-500 to-slate-600" />
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-4 mb-3">
+                      <Badge variant="secondary" className="font-semibold">
+                        CMRA Platform
+                      </Badge>
+                      <Badge className="bg-red-100 text-red-800 border-red-300">Verification Required</Badge>
+                      <div className="text-2xl font-bold text-slate-400">04</div>
+                    </div>
+                    <h3 className="text-xl font-bold mb-2">CMRAgent: CMRA Operations</h3>
+                    <p className="text-base text-slate-600 mb-4">
+                      Complete CMRA management platform with Form 1583-A onboarding
+                    </p>
+                    <div className="grid md:grid-cols-2 gap-3">
+                      {versions[3].features.map((feature, index) => (
+                        <div key={index} className="flex items-center text-sm">
+                          <div className="h-2 w-2 rounded-full bg-slate-500 mr-3 flex-shrink-0" />
+                          <span className="text-slate-700">{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="ml-8">
+                    <button
+                      className="bg-gradient-to-r from-slate-500 to-slate-600 hover:opacity-90 text-white py-3 px-6 rounded-lg font-medium transition-all duration-200"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleVersionSelect("cmragent")
+                      }}
+                    >
+                      Launch CMRAgent
+                    </button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           <div className="bg-white rounded-2xl p-8 shadow-lg border-0 mx-4">
@@ -1336,14 +1373,6 @@ export default function MailboxHeroDemoV31() {
               className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 mr-4"
             >
               Try Another Version
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="px-8 py-3 bg-transparent"
-              onClick={() => window.open("https://mailboxhero.app", "_blank")}
-            >
-              Visit Live Platform
             </Button>
           </div>
         </div>
