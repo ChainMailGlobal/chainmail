@@ -18,7 +18,6 @@ import {
   Video,
   Ligature as Signature,
   Brain,
-  Globe,
   Printer,
 } from "lucide-react"
 
@@ -102,12 +101,12 @@ export default function MailboxHeroDemoV31() {
     {
       id: "v3" as const,
       name: "V3: AI Witness (Patent-Pending)",
-      description: "USPS pilot program ready with complete AI automation",
+      description: "Choose between semi-autonomous virtual agent or fully autonomous AI witnessing",
       features: [
-        "95%+ biometric face recognition",
-        "GPS location verification",
-        "6 patent claims execution",
-        "CMID token minting on blockchain",
+        "V3a: Live virtual receptionist witnessing",
+        "V3b: 95%+ facial recognition & liveness detection",
+        "Split-screen video interface",
+        "Blockchain audit trail & CMID tokens",
       ],
       badge: "Patent-Pending",
       color: "bg-emerald-500",
@@ -193,7 +192,7 @@ export default function MailboxHeroDemoV31() {
                       handleVersionSelect(version.id)
                     }}
                   >
-                    Launch {version.id.toUpperCase()} Experience
+                    Launch {version.id.toUpperCase()} {version.id === "v3" ? "Experiences" : "Experience"}
                   </button>
                 </CardContent>
               </Card>
@@ -848,7 +847,7 @@ export default function MailboxHeroDemoV31() {
                       className={`w-full bg-gradient-to-r ${version.gradient} hover:opacity-90 text-white`}
                       onClick={() => handleVersionSelect(version.id)}
                     >
-                      Experience {version.id.toUpperCase()}
+                      {version.id === "v3" ? "Explore Experiences" : `Experience ${version.id.toUpperCase()}`}
                     </Button>
                   </CardContent>
                 </Card>
@@ -1188,151 +1187,110 @@ export default function MailboxHeroDemoV31() {
   }
 
   const V3AIWitnessFlow = () => {
-    const v3Steps = [
-      {
-        title: "95%+ Biometric Recognition",
-        description: "Advanced face recognition with confidence scoring",
-        icon: Brain,
-        visual: "/futuristic-ai-interface-with-biometric-scanning-a.png",
-      },
-      {
-        title: "GPS Location Verification",
-        description: "Device validation and location confirmation",
-        icon: MapPin,
-        visual: "/gps-location-verification-interface-with-map.png",
-      },
-      {
-        title: "6 Patent Claims Execution",
-        description: "Patent-pending AI witness technology",
-        icon: Shield,
-        visual: "/patent-claims-visualization-interface.png",
-      },
-      {
-        title: "CMID Token Minting",
-        description: "Blockchain token generation and compliance recording",
-        icon: Globe,
-        visual: "/blockchain-interface-showing-smart-contract-exec.png",
-      },
-    ]
-
-    const patentClaims = [
-      "AI-powered signature verification",
-      "Biometric identity confirmation",
-      "GPS-based location validation",
-      "Automated compliance recording",
-      "Blockchain audit trail generation",
-      "Real-time confidence scoring",
-    ]
-
-    const currentStepData = v3Steps[flowStep]
-
     return (
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-emerald-100 p-4">
         <div className="max-w-4xl mx-auto py-12">
           <div className="text-center mb-8">
-            <h2 className="text-4xl font-bold text-emerald-900 mb-4">V3: AI Witness (Patent-Pending)</h2>
-            <p className="text-lg text-emerald-700">USPS pilot program ready with complete AI automation</p>
-            <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300 mt-2">Patent-Pending Technology</Badge>
+            <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300 mb-4">
+              V3: AI Witness (Patent-Pending)
+            </Badge>
+            <h2 className="text-4xl font-bold text-emerald-900 mb-4">Choose Your AI Witnessing Experience</h2>
+            <p className="text-lg text-emerald-700">Select between semi-autonomous or fully autonomous AI witness</p>
           </div>
 
-          <Card className="shadow-xl border-0 border-t-4 border-t-emerald-500">
-            <CardHeader className="text-center pb-6 bg-emerald-50">
-              <div className="flex justify-center mb-4">
-                <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center">
-                  <currentStepData.icon className="w-8 h-8 text-emerald-600" />
-                </div>
-              </div>
-              <CardTitle className="text-2xl text-emerald-900">{currentStepData.title}</CardTitle>
-              <CardDescription className="text-lg text-emerald-700">{currentStepData.description}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6 p-8">
-              <div className="flex justify-center">
-                <img
-                  src={currentStepData.visual || "/placeholder.svg"}
-                  alt={currentStepData.title}
-                  className="w-full max-w-md rounded-lg shadow-lg"
-                  onError={(e) => {
-                    e.currentTarget.src = `/placeholder.svg?height=300&width=400&query=${encodeURIComponent(currentStepData.description)}`
-                  }}
-                />
-              </div>
-
-              {flowStep === 0 && (
-                <div className="bg-emerald-50 p-6 rounded-lg">
-                  <h4 className="font-semibold text-emerald-900 mb-3">Biometric Analysis</h4>
-                  <div className="space-y-3 text-emerald-800">
-                    <div className="flex items-center justify-between">
-                      <span>Face Recognition Confidence:</span>
-                      <span className="font-bold text-green-600">98.9%</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span>Identity Verification:</span>
-                      <span className="font-bold text-green-600">Confirmed</span>
-                    </div>
-                    <div>• Advanced neural network processing</div>
-                    <div>• Real-time confidence scoring</div>
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* V3a Card */}
+            <Card
+              className="shadow-xl border-0 hover:shadow-2xl transition-all cursor-pointer hover:scale-105"
+              onClick={() => (window.location.href = "/cmragent/witness/v3a")}
+            >
+              <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-purple-500 to-purple-600" />
+              <CardHeader className="text-center pt-6">
+                <div className="flex justify-center mb-4">
+                  <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center">
+                    <Video className="w-8 h-8 text-purple-600" />
                   </div>
                 </div>
-              )}
-
-              {flowStep === 1 && (
-                <div className="bg-emerald-50 p-6 rounded-lg">
-                  <h4 className="font-semibold text-emerald-900 mb-3">GPS Verification</h4>
-                  <div className="space-y-2 text-emerald-800">
-                    <div>• Location: Honolulu, HI (verified)</div>
-                    <div>• Device validation: iPhone 15 Pro</div>
-                    <div>• IMEI verification (private)</div>
-                    <div>• Geofencing compliance confirmed</div>
+                <CardTitle className="text-xl">V3a: Semi-Autonomous</CardTitle>
+                <CardDescription>Live virtual agent witnessing</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center space-x-2">
+                    <div className="h-2 w-2 rounded-full bg-purple-500" />
+                    <span>Live virtual receptionist</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="h-2 w-2 rounded-full bg-purple-500" />
+                    <span>Real-time video witnessing</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="h-2 w-2 rounded-full bg-purple-500" />
+                    <span>Human agent verification</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="h-2 w-2 rounded-full bg-purple-500" />
+                    <span>Split-screen interface</span>
                   </div>
                 </div>
-              )}
-
-              {flowStep === 2 && (
-                <div className="bg-emerald-50 p-6 rounded-lg">
-                  <h4 className="font-semibold text-emerald-900 mb-3">Patent Claims Execution</h4>
-                  <div className="grid grid-cols-2 gap-2 text-sm text-emerald-800">
-                    {patentClaims.map((claim, index) => (
-                      <div key={index} className="flex items-center space-x-2">
-                        <CheckCircle className="w-4 h-4 text-green-600" />
-                        <span>{claim}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {flowStep === 3 && (
-                <div className="bg-emerald-50 p-6 rounded-lg">
-                  <h4 className="font-semibold text-emerald-900 mb-3">CMID Token Minting</h4>
-                  <div className="space-y-2 text-emerald-800">
-                    <div>• CMID Token: 0x7f8e9d...</div>
-                    <div>• Blockchain: Ethereum</div>
-                    <div>• XRP Dual Chain Recordation</div>
-                    <div>• Smart contract execution confirmed</div>
-                    <div>• Compliance record immutably stored</div>
-                  </div>
-                </div>
-              )}
-
-              <div className="flex justify-center space-x-4">
-                {flowStep > 0 && (
-                  <Button
-                    variant="outline"
-                    onClick={() => setFlowStep(flowStep - 1)}
-                    className="border-emerald-300 text-emerald-700 hover:bg-emerald-50"
-                  >
-                    Previous
-                  </Button>
-                )}
-                <Button
-                  onClick={() => (flowStep < v3Steps.length - 1 ? setFlowStep(flowStep + 1) : handleFlowComplete())}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-8"
-                >
-                  {flowStep < v3Steps.length - 1 ? "Continue" : "Complete V3 Demo"}
+                <Badge className="w-full justify-center bg-green-100 text-green-800 border-green-300">
+                  USPS Compliant
+                </Badge>
+                <Button className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:opacity-90 text-white">
+                  Launch V3a Experience
                 </Button>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+
+            {/* V3b Card */}
+            <Card
+              className="shadow-xl border-0 hover:shadow-2xl transition-all cursor-pointer hover:scale-105"
+              onClick={() => (window.location.href = "/cmragent/witness/v3b")}
+            >
+              <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-emerald-500 to-emerald-600" />
+              <CardHeader className="text-center pt-6">
+                <div className="flex justify-center mb-4">
+                  <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center">
+                    <Brain className="w-8 h-8 text-emerald-600" />
+                  </div>
+                </div>
+                <CardTitle className="text-xl">V3b: Fully Autonomous</CardTitle>
+                <CardDescription>Complete AI-powered witnessing</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center space-x-2">
+                    <div className="h-2 w-2 rounded-full bg-emerald-500" />
+                    <span>95%+ facial recognition</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="h-2 w-2 rounded-full bg-emerald-500" />
+                    <span>Liveness detection</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="h-2 w-2 rounded-full bg-emerald-500" />
+                    <span>GPS location verification</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="h-2 w-2 rounded-full bg-emerald-500" />
+                    <span>Blockchain audit trail</span>
+                  </div>
+                </div>
+                <Badge className="w-full justify-center bg-yellow-100 text-yellow-800 border-yellow-300">
+                  Pilot Program
+                </Badge>
+                <Button className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:opacity-90 text-white">
+                  Launch V3b Experience
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="mt-8 text-center">
+            <Button onClick={resetDemo} variant="outline" size="lg">
+              Back to Demo Selection
+            </Button>
+          </div>
         </div>
       </div>
     )

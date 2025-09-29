@@ -16,7 +16,6 @@ import {
   TrendingUp,
   FileText,
   Settings,
-  Home,
   Activity,
   Database,
   Zap,
@@ -25,6 +24,7 @@ import {
   UserPlus,
   PlayCircle,
   Download,
+  ArrowLeft,
 } from "lucide-react"
 import { CustomerOnboardingHub } from "./customer-onboarding-hub"
 import { USPSIntegrationCenter } from "./usps-integration-center"
@@ -108,12 +108,12 @@ export function CMRAgentDashboard({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => (window.location.href = "/")}
+                onClick={() => (window.location.href = "/demo-v31")}
                 className="text-slate-600 hover:text-slate-900"
               >
-                <Home className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Back to Home</span>
-                <span className="sm:hidden">Home</span>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Return to Demo</span>
+                <span className="sm:hidden">Demo</span>
               </Button>
               <div className="h-6 w-px bg-slate-300" />
               <div>
