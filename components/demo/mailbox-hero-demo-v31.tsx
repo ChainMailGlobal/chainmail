@@ -203,7 +203,7 @@ export default function MailboxHeroDemoV31() {
           <div className="px-4 mb-8">
             <Card
               className="relative overflow-hidden hover:shadow-xl transition-all duration-300 border-0 shadow-lg hover:scale-105 cursor-pointer"
-              onClick={() => handleVersionSelect("cmragent")}
+              onClick={() => (window.location.href = "/cmragent/register")} // Link to actual registration instead of demo flow
             >
               <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-slate-500 to-slate-600" />
               <CardContent className="p-6">
@@ -230,15 +230,16 @@ export default function MailboxHeroDemoV31() {
                     </div>
                   </div>
                   <div className="ml-8">
-                    <button
-                      className="bg-gradient-to-r from-slate-500 to-slate-600 hover:opacity-90 text-white py-3 px-6 rounded-lg font-medium transition-all duration-200"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleVersionSelect("cmragent")
-                      }}
-                    >
-                      Launch CMRAgent
-                    </button>
+                    <a href="/cmragent/register">
+                      <button
+                        className="bg-gradient-to-r from-slate-500 to-slate-600 hover:opacity-90 text-white py-3 px-6 rounded-lg font-medium transition-all duration-200"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                        }}
+                      >
+                        Launch CMRAgent
+                      </button>
+                    </a>
                   </div>
                 </div>
               </CardContent>
@@ -859,7 +860,7 @@ export default function MailboxHeroDemoV31() {
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Card
               className="relative overflow-hidden hover:shadow-2xl transition-all duration-300 border-0 shadow-lg cursor-pointer"
-              onClick={() => handleVersionSelect("cmragent")}
+              onClick={() => (window.location.href = "/cmragent/register")} // Link to actual registration instead of demo flow
             >
               <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-slate-500 to-slate-600" />
               <CardContent className="p-8">
@@ -883,12 +884,16 @@ export default function MailboxHeroDemoV31() {
                     </div>
                   </div>
                   <div className="ml-8">
-                    <Button
-                      className="bg-gradient-to-r from-slate-500 to-slate-600 hover:opacity-90 text-white px-8 py-3"
-                      onClick={() => handleVersionSelect("cmragent")}
-                    >
-                      Access CMRAgent
-                    </Button>
+                    <a href="/cmragent/register">
+                      <Button
+                        className="bg-gradient-to-r from-slate-500 to-slate-600 hover:opacity-90 text-white px-8 py-3"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                        }}
+                      >
+                        Access CMRAgent
+                      </Button>
+                    </a>
                   </div>
                 </div>
               </CardContent>
