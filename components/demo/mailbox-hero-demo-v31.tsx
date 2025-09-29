@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { Checkbox } from "@/components/ui/checkbox"
 import {
   Calendar,
   Camera,
@@ -18,7 +17,7 @@ import {
   Video,
   Ligature as Signature,
   Brain,
-  Printer,
+  ArrowLeft,
 } from "lucide-react"
 
 type DemoVersion = "v1" | "v2" | "v3" | "cmragent" | null
@@ -71,14 +70,15 @@ export default function MailboxHeroDemoV31() {
     {
       id: "v1" as const,
       name: "V1: Wet Ink Foundation",
-      description: "In-person kiosk only - customer controls digital process with minimal CMRA interaction",
+      description: "In-person witnessing with QR code activation, split-screen recording, and blockchain audit trail",
       features: [
-        "In-person kiosk mode only",
-        "Dual camera interface (face + signature)",
-        "Physical wet ink signature pad",
-        "GPS verification & CMRA counter-sign",
+        "QR code scan to activate witnessing module",
+        "Split-screen: live video + signature pad",
+        "Verbal acknowledgment + digital signature",
+        "CMRA counter-signature with GPS verification",
+        "PDF generation + IPFS/blockchain audit trail",
       ],
-      badge: "Kiosk Only",
+      badge: "In Office",
       color: "bg-blue-500",
       gradient: "from-blue-500 to-blue-600",
       theme: "blue",
@@ -86,12 +86,13 @@ export default function MailboxHeroDemoV31() {
     {
       id: "v2" as const,
       name: "V2: Hybrid Digital",
-      description: "Progressive CMRAs seeking efficiency with Google Calendar scheduling",
+      description: "Remote witnessing with flexible scheduling, video call activation, and secure evidence storage",
       features: [
-        "Google Calendar scheduling",
-        "Google Meet video calls",
-        "Split-screen video interface",
-        "Digital signature with confidence scoring",
+        "Calendar/Calendly scheduling integration",
+        "Video call with automatic witnessing module",
+        "Verbal acknowledgment + digital signature",
+        "IPFS evidence storage with audit logging",
+        "Executed PDF delivered to both dashboards",
       ],
       badge: "Remote + Scheduling",
       color: "bg-purple-500",
@@ -555,7 +556,7 @@ export default function MailboxHeroDemoV31() {
                   </div>
                   <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg border border-purple-200">
                     <div>
-                      <div className="font-medium text-purple-900">V1 Kiosk Session</div>
+                      <div className="font-medium text-purple-900">V1 In-Office Session</div>
                       <div className="text-sm text-purple-700">Tomorrow 10:00 AM - Maria Garcia</div>
                     </div>
                     <Button size="sm" variant="outline">
@@ -906,34 +907,41 @@ export default function MailboxHeroDemoV31() {
   const V1WetInkFlow = () => {
     const v1Steps = [
       {
-        title: "Walk Into CMRA Office",
-        description: "Customer arrives for in-person kiosk experience",
-        icon: MapPin,
-        visual: "/cmra-office-with-dual-camera-setup-and-person-sign.png",
+        title: "Scan QR Code at CMRA Office",
+        description:
+          "Customer arrives at CMRA office and scans QR code displayed in office to open witnessing module on their device",
+        icon: Smartphone,
+        visual: "/smartphone-camera-scanning-qr-code-at-cmra-office.png",
       },
       {
-        title: "Complete Form 1583 Online → Print",
-        description: "Digital completion, CMRA prints 1 page for signing",
-        icon: Printer,
-        visual: "/printer-outputting-usps-form-1583-document.png",
-      },
-      {
-        title: "Dual Camera Witness Recording",
-        description: "Front: Face | Rear: Physical pen-on-paper signature",
+        title: "Split-Screen Recording Starts",
+        description: "Top: Live face video | Bottom: Digital signature pad",
         icon: Camera,
-        visual: "/dual-camera-setup-with-two-angles-recording-person.png",
+        visual: "/split-screen-interface-with-face-video-above-and-sign.png",
       },
       {
-        title: "GPS + CMRA Counter-Sign",
-        description: "Location verification + CMRA staff counter-signature",
+        title: "Customer Verbal Acknowledgment",
+        description: '"I acknowledge this is my signature" + digital signature capture',
+        icon: Signature,
+        visual: "/person-speaking-acknowledgment-while-signing-digital.png",
+      },
+      {
+        title: "CMRA Agent Counter-Signs",
+        description: "CMRA agent gives acknowledgment and signs on their own pad",
         icon: Shield,
-        visual: "/gps-location-verification-interface-with-map.png",
+        visual: "/cmra-agent-counter-signing-on-tablet-device.png",
       },
       {
-        title: "Customer Keeps Original",
-        description: "Photo for digital backup, customer retains physical form",
+        title: "PDF Generated & Mailbox Enabled",
+        description: "Both signatures submitted, PDF generated, all parties notified",
         icon: FileText,
-        visual: "/smartphone-taking-photo-of-signed-document-for-dig.png",
+        visual: "/completed-form-1583-pdf-with-digital-signatures.png",
+      },
+      {
+        title: "Audit Trail & Storage",
+        description: "All materials stored in IPFS, blockchain audit trail created",
+        icon: CheckCircle,
+        visual: "/blockchain-audit-trail-visualization-with-checkm.png",
       },
     ]
 
@@ -942,9 +950,20 @@ export default function MailboxHeroDemoV31() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-4">
         <div className="max-w-4xl mx-auto py-12">
+          <div className="mb-6">
+            <Button
+              variant="ghost"
+              onClick={() => (window.location.href = "/demo-v31")}
+              className="text-blue-700 hover:text-blue-900 hover:bg-blue-100"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Return to Demo
+            </Button>
+          </div>
+
           <div className="text-center mb-8">
             <h2 className="text-4xl font-bold text-blue-900 mb-4">V1: Wet Ink Foundation</h2>
-            <p className="text-lg text-blue-700">In-person kiosk only - customer controls process</p>
+            <p className="text-lg text-blue-700">In-office witnessing with QR code activation</p>
           </div>
 
           <Card className="shadow-xl border-0 border-t-4 border-t-blue-500">
@@ -958,73 +977,94 @@ export default function MailboxHeroDemoV31() {
               <CardDescription className="text-lg text-blue-700">{currentStepData.description}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 p-8">
-              <div className="flex justify-center">
+              <div className="flex justify-center items-center">
                 <img
                   src={currentStepData.visual || "/placeholder.svg"}
                   alt={currentStepData.title}
-                  className="w-full max-w-md rounded-lg shadow-lg"
+                  className="w-full max-w-lg h-auto rounded-lg shadow-lg object-contain"
                   onError={(e) => {
-                    e.currentTarget.src = `/placeholder.svg?height=300&width=400&query=${encodeURIComponent(currentStepData.description)}`
+                    e.currentTarget.src = `/placeholder.svg?height=400&width=600&query=${encodeURIComponent(currentStepData.description)}`
                   }}
                 />
               </div>
 
               {flowStep === 0 && (
-                <div className="bg-blue-50 p-6 rounded-lg">
-                  <h4 className="font-semibold text-blue-900 mb-3">In-Person Experience</h4>
+                <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                  <h4 className="font-semibold text-blue-900 mb-3">📱 QR Code Activation</h4>
                   <div className="space-y-2 text-blue-800">
-                    <div>• Customer walks into CMRA office</div>
+                    <div>• Customer arrives at CMRA office</div>
+                    <div>• Scans QR code displayed in office</div>
+                    <div>• Opens witnessing module on their own device</div>
                     <div>• Minimal CMRA staff interaction required</div>
-                    <div>• Customer controls the digital process</div>
                   </div>
                 </div>
               )}
 
               {flowStep === 1 && (
-                <div className="bg-blue-50 p-6 rounded-lg">
-                  <h4 className="font-semibold text-blue-900 mb-3">Digital-to-Physical Process</h4>
+                <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                  <h4 className="font-semibold text-blue-900 mb-3">🎥 Split-Screen Interface</h4>
                   <div className="space-y-2 text-blue-800">
-                    <div>• Complete Form 1583 online at kiosk</div>
-                    <div>• CMRA prints single page for wet ink signature</div>
-                    <div>• Seamless digital-to-physical workflow</div>
+                    <div>
+                      • <strong>Top screen:</strong> Live face video recording
+                    </div>
+                    <div>
+                      • <strong>Bottom screen:</strong> Digital signature pad
+                    </div>
+                    <div>• Front camera captures customer face</div>
+                    <div>• Recording starts automatically</div>
                   </div>
                 </div>
               )}
 
               {flowStep === 2 && (
-                <div className="bg-blue-50 p-6 rounded-lg">
-                  <h4 className="font-semibold text-blue-900 mb-3">Dual Camera Witness</h4>
+                <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                  <h4 className="font-semibold text-blue-900 mb-3">✍️ Verbal Acknowledgment & Signature</h4>
                   <div className="space-y-2 text-blue-800">
-                    <div>• Front camera: Customer face verification</div>
-                    <div>• Rear camera: Physical pen-on-paper signature capture</div>
-                    <div>• ✅ "I confirm this is my signature" → Accept → End</div>
+                    <div>• Customer states: "I acknowledge this is my signature"</div>
+                    <div>• Signs on digital signature pad</div>
+                    <div>• Video captures both verbal and written confirmation</div>
+                    <div>• Signature confidence scoring in real-time</div>
                   </div>
                 </div>
               )}
 
               {flowStep === 3 && (
-                <div className="bg-blue-50 p-6 rounded-lg">
-                  <h4 className="font-semibold text-blue-900 mb-3">Verification & Counter-Sign</h4>
+                <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                  <h4 className="font-semibold text-blue-900 mb-3">🛡️ CMRA Counter-Signature</h4>
                   <div className="space-y-2 text-blue-800">
-                    <div>• GPS confirms physical presence in CMRA office</div>
-                    <div>• CMRA staff counter-signs printed form</div>
-                    <div>• Fully executed document ready</div>
+                    <div>• CMRA agent reviews customer signature</div>
+                    <div>• Agent gives verbal acknowledgment</div>
+                    <div>• Agent signs on their own signature pad</div>
+                    <div>• GPS verification confirms physical location</div>
                   </div>
                 </div>
               )}
 
               {flowStep === 4 && (
-                <div className="bg-blue-50 p-6 rounded-lg">
-                  <h4 className="font-semibold text-blue-900 mb-3">Privacy & Storage</h4>
+                <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                  <h4 className="font-semibold text-blue-900 mb-3">📄 PDF Generation & Notifications</h4>
                   <div className="space-y-2 text-blue-800">
-                    <div>• 🔒 Private: All recordings, signatures (user's XRP wallet only)</div>
-                    <div>• 📅 Public: Only date/time of witness event</div>
-                    <div>• Customer keeps original physical form</div>
+                    <div>• Both signatures submitted to system</div>
+                    <div>• Fully executed Form 1583 PDF generated</div>
+                    <div>• Email notifications sent to all parties</div>
+                    <div>• Mailbox access immediately enabled</div>
                   </div>
                 </div>
               )}
 
-              <div className="flex justify-center space-x-4">
+              {flowStep === 5 && (
+                <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                  <h4 className="font-semibold text-blue-900 mb-3">🔒 Secure Storage & Audit Trail</h4>
+                  <div className="space-y-2 text-blue-800">
+                    <div>• Video recording stored in IPFS</div>
+                    <div>• Blockchain audit trail created (XRPL)</div>
+                    <div>• 🔒 Private: All recordings, signatures (user's XRP wallet only)</div>
+                    <div>• 📅 Public: Only date/time of witness event</div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-center space-x-4 pt-4">
                 {flowStep > 0 && (
                   <Button
                     variant="outline"
@@ -1051,28 +1091,34 @@ export default function MailboxHeroDemoV31() {
   const V2HybridFlow = () => {
     const v2Steps = [
       {
-        title: "Google Calendar Scheduling",
-        description: "3-step booking: date/time/confirm",
+        title: "Schedule Remote Session",
+        description: "Book appointment via Google Calendar/Calendly integration",
         icon: Calendar,
         visual: "/calendar-interface-showing-available-appointment.png",
       },
       {
-        title: "Google Meet Video Call",
-        description: "Scheduled video session with CMRA witness",
+        title: "Join Video Call & Activate Module",
+        description: "Customer joins video call, witnessing module activates automatically",
         icon: Video,
         visual: "/split-screen-video-call-interface-with-customer.png",
       },
       {
-        title: "Split-Screen Interface",
-        description: "Customer face top, signature pad bottom",
-        icon: Smartphone,
-        visual: "/person-above-digital-signature-pad-interface.png", // Updated visual to show person above signature pad
+        title: "Verbal Acknowledgment & Signature",
+        description: "Customer acknowledges on camera and signs digitally",
+        icon: Signature,
+        visual: "/person-above-digital-signature-pad-interface.png",
       },
       {
-        title: "Digital Signature Confidence",
-        description: "Real-time confidence scoring and WebRTC recording",
-        icon: Signature,
-        visual: "/digital-signature-pad-with-confidence-scoring.png",
+        title: "CMRA Witness Confirmation",
+        description: "CMRA agent (audio/video) confirms and counter-signs",
+        icon: Shield,
+        visual: "/cmra-agent-witnessing-remotely-on-video-call.png",
+      },
+      {
+        title: "Evidence Storage & Dashboard Delivery",
+        description: "Video stored in IPFS, executed PDF delivered to both dashboards",
+        icon: FileText,
+        visual: "/dashboard-showing-completed-form-1583-with-video.png",
       },
     ]
 
@@ -1081,9 +1127,20 @@ export default function MailboxHeroDemoV31() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100 p-4">
         <div className="max-w-4xl mx-auto py-12">
+          <div className="mb-6">
+            <Button
+              variant="ghost"
+              onClick={() => (window.location.href = "/demo-v31")}
+              className="text-purple-700 hover:text-purple-900 hover:bg-purple-100"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Return to Demo
+            </Button>
+          </div>
+
           <div className="text-center mb-8">
             <h2 className="text-4xl font-bold text-purple-900 mb-4">V2: Hybrid Digital</h2>
-            <p className="text-lg text-purple-700">Progressive CMRAs seeking efficiency</p>
+            <p className="text-lg text-purple-700">Remote witnessing with seamless scheduling</p>
           </div>
 
           <Card className="shadow-xl border-0 border-t-4 border-t-purple-500">
@@ -1097,72 +1154,111 @@ export default function MailboxHeroDemoV31() {
               <CardDescription className="text-lg text-purple-700">{currentStepData.description}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 p-8">
-              <div className="flex justify-center">
+              <div className="flex justify-center items-center">
                 <img
                   src={currentStepData.visual || "/placeholder.svg"}
                   alt={currentStepData.title}
-                  className="w-full max-w-md rounded-lg shadow-lg"
+                  className="w-full max-w-lg h-auto rounded-lg shadow-lg object-contain"
                   onError={(e) => {
-                    e.currentTarget.src = `/placeholder.svg?height=300&width=400&query=${encodeURIComponent(currentStepData.description)}`
+                    e.currentTarget.src = `/placeholder.svg?height=400&width=600&query=${encodeURIComponent(currentStepData.description)}`
                   }}
                 />
               </div>
 
               {flowStep === 0 && (
-                <div className="bg-purple-50 p-6 rounded-lg">
-                  <h4 className="font-semibold text-purple-900 mb-3">Scheduling System</h4>
+                <div className="bg-purple-50 p-6 rounded-lg border border-purple-200">
+                  <h4 className="font-semibold text-purple-900 mb-3">📅 Seamless Scheduling</h4>
                   <div className="space-y-2 text-purple-800">
-                    <div>• Google Calendar integration</div>
-                    <div>• Available time slots: 9 AM - 5 PM</div>
-                    <div>• CMRA witness: Jessica Martinez</div>
-                    <div>• Session duration: 2-3 minutes</div>
+                    <div>
+                      • <strong>Integration:</strong> Google Calendar or Calendly
+                    </div>
+                    <div>
+                      • <strong>Step 1:</strong> Select available date
+                    </div>
+                    <div>
+                      • <strong>Step 2:</strong> Choose time slot (9 AM - 5 PM)
+                    </div>
+                    <div>
+                      • <strong>Step 3:</strong> Confirm appointment
+                    </div>
+                    <div>
+                      • <strong>Duration:</strong> 2-3 minute session
+                    </div>
+                    <div className="pt-2 text-sm text-purple-700">Automatic email confirmation and reminders sent</div>
                   </div>
                 </div>
               )}
 
               {flowStep === 1 && (
-                <div className="bg-purple-50 p-6 rounded-lg">
-                  <h4 className="font-semibold text-purple-900 mb-3">Video Call Session</h4>
+                <div className="bg-purple-50 p-6 rounded-lg border border-purple-200">
+                  <h4 className="font-semibold text-purple-900 mb-3">🎥 Video Call & Module Activation</h4>
                   <div className="space-y-2 text-purple-800">
-                    <div>• Google Meet integration</div>
-                    <div>• "Hello, ready to sign?" greeting</div>
-                    <div>• Name acknowledgment and signature process</div>
-                    <div>• "Thank you" completion</div>
+                    <div>• Customer joins scheduled Google Meet session</div>
+                    <div>• Witnessing module activates automatically</div>
+                    <div>
+                      • <strong>Top screen:</strong> Front camera (face verification)
+                    </div>
+                    <div>
+                      • <strong>Bottom screen:</strong> Digital signature pad
+                    </div>
+                    <div className="pt-2 text-sm text-purple-700">
+                      Split-screen interface ensures compliance verification
+                    </div>
                   </div>
                 </div>
               )}
 
               {flowStep === 2 && (
-                <div className="bg-purple-50 p-6 rounded-lg">
-                  <h4 className="font-semibold text-purple-900 mb-3">Split-Screen Interface</h4>
+                <div className="bg-purple-50 p-6 rounded-lg border border-purple-200">
+                  <h4 className="font-semibold text-purple-900 mb-3">✍️ Customer Acknowledgment</h4>
                   <div className="space-y-2 text-purple-800">
-                    <div>• Customer face verification (top screen)</div>
-                    <div>• Digital signature pad (bottom screen)</div>
-                    <div>• CMRA witness sees full split screen</div>
-                    <div>• Real-time verification process</div>
+                    <div>• Customer gives verbal acknowledgment on camera</div>
+                    <div>• "I acknowledge this is my signature"</div>
+                    <div>• Customer signs on digital signature pad</div>
+                    <div>• Real-time confidence scoring displayed</div>
+                    <div className="pt-2 text-sm text-purple-700">WebRTC recording captures entire session</div>
                   </div>
                 </div>
               )}
 
               {flowStep === 3 && (
-                <div className="bg-purple-50 p-6 rounded-lg">
-                  <h4 className="font-semibold text-purple-900 mb-3">Confidence Scoring</h4>
-                  <div className="space-y-3 text-purple-800">
-                    <div className="flex items-center justify-between">
-                      <span>Signature Confidence:</span>
-                      <span className="font-bold text-green-600">94.7%</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox checked readOnly />
-                      <span>"I confirm this is my signature"</span>
-                    </div>
-                    <div>• WebRTC recording → IPFS storage</div>
-                    <div>• Private to user's XRP wallet</div>
+                <div className="bg-purple-50 p-6 rounded-lg border border-purple-200">
+                  <h4 className="font-semibold text-purple-900 mb-3">🛡️ CMRA Witness Confirmation</h4>
+                  <div className="space-y-2 text-purple-800">
+                    <div>• CMRA agent reviews customer signature</div>
+                    <div>• Agent provides verbal confirmation (audio/video)</div>
+                    <div>• Agent counter-signs on their own device</div>
+                    <div>• Session evidence captured for audit</div>
+                    <div className="pt-2 text-sm text-purple-700">CMRA witness: Jessica Martinez (certified agent)</div>
                   </div>
                 </div>
               )}
 
-              <div className="flex justify-center space-x-4">
+              {flowStep === 4 && (
+                <div className="bg-purple-50 p-6 rounded-lg border border-purple-200">
+                  <h4 className="font-semibold text-purple-900 mb-3">📦 Storage & Dashboard Delivery</h4>
+                  <div className="space-y-3 text-purple-800">
+                    <div>
+                      • <strong>Video storage:</strong> IPFS (immutable, off-site)
+                    </div>
+                    <div>
+                      • <strong>Audit log:</strong> Blockchain trail created
+                    </div>
+                    <div>
+                      • <strong>PDF delivery:</strong> Both customer & CMRA dashboards
+                    </div>
+                    <div>
+                      • <strong>Status check:</strong> Compliance warnings if issues remain
+                    </div>
+                    <div className="pt-2 space-y-1 text-sm">
+                      <div>• 🔒 Private: All recordings, signatures (user's XRP wallet only)</div>
+                      <div>• 📅 Public: Only date/time of witness event</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-center space-x-4 pt-4">
                 {flowStep > 0 && (
                   <Button
                     variant="outline"
