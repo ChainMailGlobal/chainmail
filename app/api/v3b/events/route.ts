@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { createServerClient } from "@/lib/supabase/server"
 
 // POST /api/v3b/events - Log session event
 export async function POST(request: NextRequest) {
@@ -8,17 +9,34 @@ export async function POST(request: NextRequest) {
 
     console.log("[v0] Logging session event:", { sessionId, eventType })
 
-    // TODO: Insert into session_events table
-    // TODO: Get user info from auth
+    const supabase = createServerClient()
 
-    const event = {
-      id: crypto.randomUUID(),
-      sessionId,
-      eventType,
-      eventData,
-      timestamp: new Date().toISOString(),
-      ipAddress: request.headers.get("x-forwarded-for") || "unknown",
-      userAgent: request.headers.get("user-agent") || "unknown",
+    // Get current user
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    // Insert event into database
+    const { data: event, error } = await supabase
+      .from("session_events")
+      .insert({
+        session_id: sessionId,
+        event_type: eventType,
+        event_data: eventData,
+        user_id: user.id,
+        ip_address: request.headers.get("x-forwarded-for") || "unknown",
+        user_agent: request.headers.get("user-agent") || "unknown",
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error("[v0] Database error:", error)
+      return NextResponse.json({ error: "Failed to log event" }, { status: 500 })
     }
 
     return NextResponse.json({ event }, { status: 201 })

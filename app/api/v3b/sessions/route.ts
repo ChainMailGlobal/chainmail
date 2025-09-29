@@ -1,23 +1,38 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { createServerClient } from "@/lib/supabase/server"
 
 // GET /api/v3b/sessions - Get all sessions for current user
 export async function GET(request: NextRequest) {
   try {
-    // TODO: Get user from auth session
-    // const user = await getCurrentUser(request)
+    const supabase = createServerClient()
 
-    // Mock response for now
-    const sessions = [
-      {
-        id: "550e8400-e29b-41d4-a716-446655440003",
-        status: "scheduled",
-        scheduledAt: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
-        cmraAgent: {
-          fullName: "Sarah Johnson",
-          cmraName: "Downtown Mail Center",
-        },
-      },
-    ]
+    // Get current user
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    // Fetch sessions with CMRA agent details
+    const { data: sessions, error } = await supabase
+      .from("witness_sessions")
+      .select(`
+        *,
+        cmra_agent:cmra_agents(
+          id,
+          full_name,
+          cmra_name
+        )
+      `)
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+
+    if (error) {
+      console.error("[v0] Database error:", error)
+      return NextResponse.json({ error: "Failed to fetch sessions" }, { status: 500 })
+    }
 
     return NextResponse.json({ sessions })
   } catch (error) {
@@ -32,17 +47,36 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { scheduledAt, cmraAgentId } = body
 
-    // TODO: Validate user authentication
-    // TODO: Insert into database
+    const supabase = createServerClient()
 
-    // Mock response
-    const session = {
-      id: crypto.randomUUID(),
-      status: "scheduled",
-      scheduledAt,
-      cmraAgentId,
-      videoRoomId: `room_${Date.now()}`,
-      createdAt: new Date().toISOString(),
+    // Validate user authentication
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    // Create video room ID
+    const videoRoomId = `room_${Date.now()}_${crypto.randomUUID().slice(0, 8)}`
+
+    // Insert into database
+    const { data: session, error } = await supabase
+      .from("witness_sessions")
+      .insert({
+        user_id: user.id,
+        cmra_agent_id: cmraAgentId,
+        status: "scheduled",
+        scheduled_at: scheduledAt,
+        video_room_id: videoRoomId,
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error("[v0] Database error:", error)
+      return NextResponse.json({ error: "Failed to create session" }, { status: 500 })
     }
 
     console.log("[v0] Created new V3b session:", session.id)

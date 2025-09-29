@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { createServerClient } from "@/lib/supabase/server"
 
 // GET /api/v3b/availability - Get available time slots
 export async function GET(request: NextRequest) {
@@ -6,25 +7,57 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const date = searchParams.get("date") || new Date().toISOString().split("T")[0]
 
-    // TODO: Query database for agent availability
-    // TODO: Filter out already booked slots
+    const supabase = createServerClient()
 
-    // Mock available slots (9 AM - 5 PM, 30-minute intervals)
-    const slots = []
-    const startHour = 9
-    const endHour = 17
+    // Query database for agent availability on the specified date
+    const { data: availabilitySlots, error } = await supabase
+      .from("agent_availability")
+      .select(`
+        *,
+        cmra_agent:cmra_agents(
+          id,
+          full_name,
+          cmra_name
+        )
+      `)
+      .eq("date", date)
+      .eq("is_available", true)
+      .order("start_time", { ascending: true })
 
-    for (let hour = startHour; hour < endHour; hour++) {
-      for (const minute of [0, 30]) {
-        const time = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`
-        slots.push({
-          time,
-          available: Math.random() > 0.3, // Mock availability
-          agentId: "550e8400-e29b-41d4-a716-446655440001",
-          agentName: "Sarah Johnson",
-        })
-      }
+    if (error) {
+      console.error("[v0] Database error:", error)
+      return NextResponse.json({ error: "Failed to fetch availability" }, { status: 500 })
     }
+
+    // Check for existing bookings on this date
+    const { data: bookedSessions, error: bookingError } = await supabase
+      .from("witness_sessions")
+      .select("scheduled_at, cmra_agent_id")
+      .gte("scheduled_at", `${date}T00:00:00`)
+      .lte("scheduled_at", `${date}T23:59:59`)
+      .in("status", ["scheduled", "in_progress"])
+
+    if (bookingError) {
+      console.error("[v0] Booking query error:", bookingError)
+    }
+
+    // Create a set of booked time slots
+    const bookedSlots = new Set(
+      (bookedSessions || []).map((session) => `${session.cmra_agent_id}_${session.scheduled_at}`),
+    )
+
+    // Format slots and filter out booked ones
+    const slots = availabilitySlots.map((slot) => {
+      const slotKey = `${slot.cmra_agent_id}_${date}T${slot.start_time}`
+      return {
+        time: slot.start_time,
+        endTime: slot.end_time,
+        available: !bookedSlots.has(slotKey),
+        agentId: slot.cmra_agent_id,
+        agentName: slot.cmra_agent?.full_name || "Unknown Agent",
+        cmraName: slot.cmra_agent?.cmra_name || "Unknown CMRA",
+      }
+    })
 
     return NextResponse.json({ date, slots })
   } catch (error) {
