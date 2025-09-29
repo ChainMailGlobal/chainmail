@@ -19,6 +19,10 @@ import {
   Eye,
   ArrowLeft,
 } from "lucide-react"
+import { useConfidenceScoring } from "@/hooks/use-confidence-scoring"
+import { ConfidenceDisplay } from "@/components/v3b/confidence-display"
+import { startWitnessSession, saveCustomerSignature, completeWitnessSession } from "@/lib/actions/v3b-actions"
+import { logSessionEvent } from "@/lib/v3b-client"
 
 type WitnessStep =
   | "intro"
@@ -54,6 +58,16 @@ export default function V3bWitnessFlow() {
   })
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  const [sessionId, setSessionId] = useState<string>("")
+  const [sessionStartTime, setSessionStartTime] = useState<number>(0)
+  const [verbalAcknowledgment, setVerbalAcknowledgment] = useState<string>("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const { score, isAnalyzing, analyzeFrame, analyzeFullSession } = useConfidenceScoring(
+    sessionId,
+    currentStep !== "intro" && currentStep !== "complete",
+  )
 
   // Simulate AI processing
   useEffect(() => {
@@ -105,20 +119,53 @@ export default function V3bWitnessFlow() {
     }
   }, [currentStep])
 
-  const handleStartSession = () => {
+  useEffect(() => {
+    if (score.overall > 0) {
+      setBiometrics((prev) => ({
+        ...prev,
+        faceMatch: score.overall,
+        livenessScore: score.liveness,
+      }))
+    }
+  }, [score])
+
+  const handleStartSession = async () => {
+    const newSessionId = crypto.randomUUID()
+    setSessionId(newSessionId)
+    setSessionStartTime(Date.now())
+
+    console.log("[v0] Starting V3b session:", newSessionId)
+
+    // Log session start event
+    await logSessionEvent(newSessionId, "session_started", {
+      sessionType: "v3b_autonomous_ai",
+      userAgent: navigator.userAgent,
+    })
+
     setCurrentStep("camera-setup")
   }
 
-  const handleCameraReady = () => {
+  const handleCameraReady = async () => {
     setIsVideoOn(true)
     setCurrentStep("ai-initialize")
+
+    if (sessionId) {
+      const result = await startWitnessSession(sessionId)
+      console.log("[v0] Session started:", result)
+
+      await logSessionEvent(sessionId, "camera_initialized", {
+        videoEnabled: true,
+        audioEnabled: !isMuted,
+      })
+    }
+
     setTimeout(() => {
       setCurrentStep("facial-recognition")
     }, 2000)
   }
 
-  const handleDrawSignature = () => {
-    if (canvasRef.current) {
+  const handleDrawSignature = async () => {
+    if (canvasRef.current && sessionId) {
       const canvas = canvasRef.current
       const ctx = canvas.getContext("2d")
       if (ctx) {
@@ -132,19 +179,69 @@ export default function V3bWitnessFlow() {
 
         const dataUrl = canvas.toDataURL()
         setSignatureData(dataUrl)
+
+        setIsSubmitting(true)
+        const result = await saveCustomerSignature(sessionId, dataUrl)
+        console.log("[v0] Signature saved:", result)
+
+        await logSessionEvent(sessionId, "signature_captured", {
+          signatureUrl: result.signatureUrl,
+        })
+
+        // Simulate verbal acknowledgment
+        const mockVerbal = "I am John Smith and I am signing Form 1583"
+        setVerbalAcknowledgment(mockVerbal)
+
+        await logSessionEvent(sessionId, "verbal_acknowledgment", {
+          transcript: mockVerbal,
+        })
+
         setBiometrics((prev) => ({ ...prev, signatureConfidence: 96.4 }))
         setCurrentStep("ai-witness")
+        setIsSubmitting(false)
 
-        // Simulate AI witnessing
-        setTimeout(() => {
+        setTimeout(async () => {
+          const analysis = await analyzeFullSession({
+            customerName: "John Smith",
+            duration: Math.floor((Date.now() - sessionStartTime) / 1000),
+            verbalAcknowledgment: mockVerbal,
+          })
+
+          console.log("[v0] AI Analysis complete:", analysis)
+
+          await logSessionEvent(sessionId, "ai_analysis_complete", {
+            confidenceScore: analysis?.overallConfidence,
+            livenessScore: analysis?.livenessScore,
+            fraudFlags: analysis?.fraudFlags,
+          })
+
           setCurrentStep("blockchain-record")
-          setTimeout(() => {
+
+          setTimeout(async () => {
+            const completion = await completeWitnessSession(sessionId)
+            console.log("[v0] Session completed:", completion)
+
+            await logSessionEvent(sessionId, "session_completed", {
+              form1583Url: completion.form1583Url,
+              certificateUrl: completion.certificateUrl,
+              ipfsHash: completion.ipfsHash,
+              blockchainTx: completion.blockchainTx,
+            })
+
             setCurrentStep("complete")
             setIsRecording(false)
           }, 3000)
         }, 3000)
       }
     }
+  }
+
+  const getSessionDuration = () => {
+    if (sessionStartTime === 0) return "0:00"
+    const seconds = Math.floor((Date.now() - sessionStartTime) / 1000)
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, "0")}`
   }
 
   return (
@@ -430,7 +527,7 @@ export default function V3bWitnessFlow() {
                     )}
                     <div className="flex items-center space-x-2 text-sm text-slate-600">
                       <Clock className="w-4 h-4" />
-                      <span>Session time: 0:47</span>
+                      <span>Session time: {getSessionDuration()}</span>
                     </div>
                     <div className="flex items-center space-x-2 text-sm text-emerald-600">
                       <Brain className="w-4 h-4" />
@@ -439,13 +536,22 @@ export default function V3bWitnessFlow() {
                   </div>
 
                   <div className="flex items-center space-x-2">
-                    <Badge className="bg-green-100 text-green-800">Face: {biometrics.faceMatch.toFixed(1)}%</Badge>
-                    <Badge className="bg-green-100 text-green-800">Live: {biometrics.livenessScore.toFixed(1)}%</Badge>
+                    <Badge className="bg-green-100 text-green-800">Face: {score.overall.toFixed(1)}%</Badge>
+                    <Badge className="bg-green-100 text-green-800">Live: {score.liveness.toFixed(1)}%</Badge>
                     {biometrics.gpsVerified && <Badge className="bg-green-100 text-green-800">GPS ✓</Badge>}
                   </div>
                 </div>
               </CardContent>
             </Card>
+
+            {(currentStep === "ai-witness" || currentStep === "blockchain-record") && (
+              <ConfidenceDisplay
+                overallScore={score.overall}
+                livenessScore={score.liveness}
+                fraudFlags={[]}
+                isAnalyzing={isAnalyzing}
+              />
+            )}
 
             {/* Split Screen Interface */}
             <div className="grid grid-cols-1 gap-4">
@@ -507,6 +613,7 @@ export default function V3bWitnessFlow() {
                               ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height)
                             }
                           }}
+                          disabled={isSubmitting}
                         >
                           Clear
                         </Button>
@@ -515,8 +622,9 @@ export default function V3bWitnessFlow() {
                             size="sm"
                             onClick={handleDrawSignature}
                             className="bg-emerald-600 hover:bg-emerald-700"
+                            disabled={isSubmitting}
                           >
-                            Submit Signature
+                            {isSubmitting ? "Submitting..." : "Submit Signature"}
                           </Button>
                         )}
                       </div>
