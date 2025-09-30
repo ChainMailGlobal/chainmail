@@ -26,7 +26,7 @@ export default function CMRAv3bWitnessFlow() {
     {
       id: "intro",
       title: "Welcome to AI Witness Session",
-      description: "Autonomous AI-powered Form 1583-A witnessing for CMRA agents",
+      description: "Autonomous AI-powered Form 1583 witnessing for CMRA operators",
       icon: Brain,
       color: "emerald",
     },
@@ -46,7 +46,7 @@ export default function CMRAv3bWitnessFlow() {
     },
     {
       id: "form-review",
-      title: "Form 1583-A Review",
+      title: "Form 1583 Review",
       description: "Review your pre-filled form data",
       icon: FileText,
       color: "slate",
@@ -61,7 +61,7 @@ export default function CMRAv3bWitnessFlow() {
     {
       id: "signature-capture",
       title: "Digital Signature",
-      description: "Sign your Form 1583-A",
+      description: "Sign your Form 1583",
       icon: Shield,
       color: "green",
     },
@@ -75,7 +75,7 @@ export default function CMRAv3bWitnessFlow() {
     {
       id: "complete",
       title: "CMRA Dashboard Activated",
-      description: "Your admin dashboard is now ready",
+      description: "Your Form 1583 has been successfully witnessed and verified",
       icon: CheckCircle,
       color: "emerald",
     },
@@ -116,7 +116,7 @@ export default function CMRAv3bWitnessFlow() {
         <div className="max-w-4xl mx-auto py-12 text-center">
           <CheckCircle className="w-24 h-24 text-emerald-500 mx-auto mb-6" />
           <h2 className="text-4xl font-bold text-slate-900 mb-4">CMRA Dashboard Activated!</h2>
-          <p className="text-xl text-slate-700 mb-8">Your Form 1583-A has been successfully witnessed and verified</p>
+          <p className="text-xl text-slate-700 mb-8">Your Form 1583 has been successfully witnessed and verified</p>
 
           <Card className="shadow-xl border-0 mb-8">
             <CardContent className="p-8">
@@ -162,7 +162,7 @@ export default function CMRAv3bWitnessFlow() {
         <div className="text-center mb-8">
           <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 mb-4">CMRA Agent Verification</Badge>
           <h2 className="text-4xl font-bold text-slate-900 mb-4">AI Witness Session</h2>
-          <p className="text-lg text-slate-600">Autonomous Form 1583-A witnessing for CMRA operators</p>
+          <p className="text-lg text-slate-600">Autonomous Form 1583 witnessing for CMRA operators</p>
         </div>
 
         <div className="flex justify-center mb-8">
@@ -205,13 +205,15 @@ export default function CMRAv3bWitnessFlow() {
             <CardDescription className="text-lg">{currentStepData?.description}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="flex justify-center">
-              <img
-                src={`/.jpg?height=300&width=400&query=${encodeURIComponent(currentStepData?.description || "")}`}
-                alt={currentStepData?.title}
-                className="w-full max-w-md rounded-lg shadow-lg"
-              />
-            </div>
+            {currentStep !== "intro" && (
+              <div className="flex justify-center">
+                <img
+                  src={`/.jpg?height=300&width=400&query=${encodeURIComponent(currentStepData?.description || "")}`}
+                  alt={currentStepData?.title}
+                  className="w-full max-w-md rounded-lg shadow-lg"
+                />
+              </div>
+            )}
 
             {currentStep === "intro" && (
               <div className="bg-emerald-50 p-6 rounded-lg">
@@ -252,12 +254,12 @@ export default function CMRAv3bWitnessFlow() {
 
             {currentStep === "form-review" && (
               <div className="bg-slate-50 p-6 rounded-lg">
-                <h4 className="font-semibold text-slate-900 mb-3">Form 1583-A Preview</h4>
+                <h4 className="font-semibold text-slate-900 mb-3">Form 1583 Preview</h4>
                 <div className="space-y-2 text-slate-800">
                   <div>• Review all pre-filled information</div>
-                  <div>• Verify business details</div>
-                  <div>• Confirm CMRA license number</div>
-                  <div>• Check postal station address</div>
+                  <div>• Verify personal details</div>
+                  <div>• Confirm mailing address</div>
+                  <div>• Check identification information</div>
                 </div>
               </div>
             )}

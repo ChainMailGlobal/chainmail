@@ -99,7 +99,13 @@ export function Header() {
                   </a>
                 </Button>
                 <Button className="bg-primary hover:bg-primary/90 text-primary-foreground" asChild>
-                  <a href="/signup-v31">Get Started</a>
+                  <a
+                    href="https://app.dreambase.ai/workspace/bc1aa565-a7c8-42f6-b445-f74b0238a074/dashboards/reports/aa015d37-f60c-4229-99dc-04e8b5a340aa"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    CMRAgent
+                  </a>
                 </Button>
               </>
             )}
@@ -152,7 +158,13 @@ export function Header() {
                       </a>
                     </Button>
                     <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" asChild>
-                      <a href="/signup-v31">Get Started</a>
+                      <a
+                        href="https://app.dreambase.ai/workspace/bc1aa565-a7c8-42f6-b445-f74b0238a074/dashboards/reports/aa015d37-f60c-4229-99dc-04e8b5a340aa"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        CMRAgent
+                      </a>
                     </Button>
                   </>
                 )}

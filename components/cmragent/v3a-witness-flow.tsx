@@ -221,9 +221,23 @@ export default function V3aWitnessFlow() {
           <Card className="shadow-xl border-0">
             <CardHeader className="text-center">
               <CardTitle className="text-2xl">Connecting to Virtual Agent</CardTitle>
-              <CardDescription>Please wait while we connect you with an available agent</CardDescription>
+              <CardDescription>You are in the queue - connecting to next available agent</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              <div className="bg-purple-50 p-6 rounded-lg border border-purple-200">
+                <div className="flex items-center justify-center space-x-3 mb-4">
+                  <Clock className="w-6 h-6 text-purple-600" />
+                  <h3 className="text-lg font-semibold text-purple-900">Queue Status</h3>
+                </div>
+                <div className="space-y-3 text-center">
+                  <p className="text-purple-800">
+                    <strong>Position in queue:</strong> 2nd
+                  </p>
+                  <p className="text-sm text-purple-700">Estimated wait time: Less than 1 minute</p>
+                  <p className="text-sm text-purple-600">Our agents are available 24/7 to assist you</p>
+                </div>
+              </div>
+
               <div className="flex justify-center">
                 <div className="w-24 h-24 bg-purple-100 rounded-full flex items-center justify-center animate-pulse">
                   <User className="w-12 h-12 text-purple-600" />
@@ -231,7 +245,7 @@ export default function V3aWitnessFlow() {
               </div>
 
               <div className="text-center">
-                <p className="text-lg text-slate-700 mb-2">Connecting to agent...</p>
+                <p className="text-lg text-slate-700 mb-2">Connecting to next available agent...</p>
                 <Progress value={66} className="w-full max-w-md mx-auto" />
               </div>
 
@@ -464,9 +478,9 @@ export default function V3aWitnessFlow() {
               <div className="flex space-x-4">
                 <Button
                   className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
-                  onClick={() => (window.location.href = "/dashboard")}
+                  onClick={() => (window.location.href = "/demo-v31")}
                 >
-                  View My Dashboard
+                  Return to Demo
                 </Button>
                 <Button variant="outline" className="flex-1 bg-transparent">
                   Download Receipt

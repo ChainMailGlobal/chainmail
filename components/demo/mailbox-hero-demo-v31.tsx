@@ -230,10 +230,11 @@ export default function MailboxHeroDemoV31() {
                   <div className="border-2 border-emerald-200 rounded-lg p-4 bg-emerald-50">
                     <div className="flex items-center space-x-2 mb-2">
                       <CheckCircle className="w-5 h-5 text-emerald-600" />
-                      <h4 className="font-semibold text-emerald-900">Already Filed Form 1583</h4>
+                      <h4 className="font-semibold text-emerald-900">Already Filed Form 1583-A</h4>
                     </div>
                     <p className="text-sm text-emerald-700 mb-4">
-                      Complete autonomous AI witness session for regular Form 1583 to activate your CMRA dashboard
+                      Complete your personal Form 1583 via autonomous AI witness session. Same process your customers
+                      use to receive mail on their own behalf.
                     </p>
                     <a href="/cmragent/witness/v3b">
                       <button className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:opacity-90 text-white py-3 px-4 rounded-lg font-medium transition-all duration-200">
