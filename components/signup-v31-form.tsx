@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ArrowRight, Sparkles, Shield, Zap, Copy, Eye, EyeOff } from "lucide-react"
+import { ArrowRight, Sparkles, Shield, Zap, Copy, Eye, EyeOff, ArrowLeft } from "lucide-react"
 
 export function SignupV31Form() {
   const [formData, setFormData] = useState({
@@ -66,6 +66,13 @@ export function SignupV31Form() {
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="max-w-2xl mx-auto">
+        <div className="mb-6">
+          <Button variant="outline" onClick={() => (window.location.href = "/")} className="bg-white hover:bg-slate-50">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Home
+          </Button>
+        </div>
+
         <div className="text-center mb-8">
           <Badge className="bg-gradient-to-r from-purple-600 to-emerald-600 text-white mb-4">
             <Sparkles className="w-4 h-4 mr-2" />

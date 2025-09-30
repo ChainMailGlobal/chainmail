@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -25,11 +26,13 @@ import {
   PlayCircle,
   Download,
   ArrowLeft,
+  LogOut,
 } from "lucide-react"
 import { CustomerOnboardingHub } from "./customer-onboarding-hub"
 import { USPSIntegrationCenter } from "./usps-integration-center"
 import { ComplianceCommandCenter } from "./compliance-command-center"
 import { BusinessAnalyticsDashboard } from "./business-analytics-dashboard"
+import { signOut } from "@/lib/actions/auth-actions"
 
 interface CMRALocation {
   id: string
@@ -63,6 +66,11 @@ export function CMRAgentDashboard({
   const [activeTab, setActiveTab] = useState<"dashboard" | "customers" | "usps" | "compliance" | "analytics">(
     "dashboard",
   )
+  const router = useRouter()
+
+  const handleLogout = async () => {
+    await signOut()
+  }
 
   const demoMetrics = {
     totalRevenue: 24500,
@@ -128,6 +136,10 @@ export function CMRAgentDashboard({
               <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 sm:hidden">
                 ✅ Active
               </Badge>
+              <Button variant="outline" size="sm" className="hidden sm:flex bg-transparent" onClick={handleLogout}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign Out
+              </Button>
               <Button variant="outline" size="sm" className="hidden sm:flex bg-transparent">
                 <Settings className="h-4 w-4 mr-2" />
                 Settings

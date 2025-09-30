@@ -9,7 +9,8 @@ export function getSupabaseClient() {
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!supabaseUrl || !supabaseKey) {
-    throw new Error("Missing Supabase environment variables")
+    console.warn("[v0] Supabase environment variables not configured. Auth features will be disabled.")
+    return null
   }
 
   client = createBrowserClient(supabaseUrl, supabaseKey)

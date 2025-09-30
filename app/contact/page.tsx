@@ -4,10 +4,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Mail } from "lucide-react"
+import { Header } from "@/components/header"
 
 export default function ContactPage() {
   return (
     <div className="min-h-screen bg-background">
+      <Header />
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
@@ -76,7 +78,7 @@ export default function ContactPage() {
                     <Mail className="h-6 w-6 text-primary" />
                     <div>
                       <h3 className="font-semibold">Email</h3>
-                      <p className="text-muted-foreground">Daniel@chainmail.global</p>
+                      <p className="text-muted-foreground">Daniel@mailboxhero.pro</p>
                     </div>
                   </div>
                 </CardContent>

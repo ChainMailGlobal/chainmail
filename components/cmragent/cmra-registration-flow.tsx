@@ -170,6 +170,51 @@ export function CMRARegistrationFlow() {
     }, 1500)
   }
 
+  const handleCompleteRegistration = async () => {
+    setIsProcessing(true)
+
+    try {
+      const response = await fetch("/api/cmra/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: registrationData.email,
+          password: registrationData.password,
+          fullName: `${registrationData.firstName} ${registrationData.lastName}`,
+          firstName: registrationData.firstName,
+          lastName: registrationData.lastName,
+          role: registrationData.role,
+          photoIdData: registrationData.photoId.extractedData,
+          addressIdData: registrationData.addressId.extractedData,
+          form1583aUrl: registrationData.form1583aUrl,
+          photoIdType: registrationData.photoId.type,
+          addressIdType: registrationData.addressId.type,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error("[v0] Registration failed:", errorText)
+        throw new Error(`Registration failed: ${response.status}`)
+      }
+
+      const result = await response.json()
+
+      if (result.success) {
+        console.log("[v0] CMRA agent registered successfully:", result.agentId)
+        handleNextStep()
+      } else {
+        console.error("[v0] Registration failed:", result.error)
+        throw new Error(result.error || "Registration failed")
+      }
+    } catch (error) {
+      console.error("[v0] Error completing registration:", error)
+      alert("Registration failed. Please try again or contact support.")
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
   const handleNextStep = () => {
     if (currentStepIndex < steps.length - 1) {
       setCurrentStep(steps[currentStepIndex + 1].id as RegistrationStep)
@@ -204,7 +249,9 @@ export function CMRARegistrationFlow() {
             <Input
               id="firstName"
               value={registrationData.firstName}
-              onChange={(e) => setRegistrationData({ ...registrationData, firstName: e.target.value })}
+              onChange={(e) => {
+                setRegistrationData((prev) => ({ ...prev, firstName: e.target.value }))
+              }}
               placeholder="Enter first name"
               className="mt-1"
             />
@@ -214,7 +261,9 @@ export function CMRARegistrationFlow() {
             <Input
               id="lastName"
               value={registrationData.lastName}
-              onChange={(e) => setRegistrationData({ ...registrationData, lastName: e.target.value })}
+              onChange={(e) => {
+                setRegistrationData((prev) => ({ ...prev, lastName: e.target.value }))
+              }}
               placeholder="Enter last name"
               className="mt-1"
             />
@@ -229,7 +278,7 @@ export function CMRARegistrationFlow() {
               id="email"
               type="email"
               value={registrationData.email}
-              onChange={(e) => setRegistrationData({ ...registrationData, email: e.target.value })}
+              onChange={(e) => setRegistrationData((prev) => ({ ...prev, email: e.target.value }))}
               placeholder="your.email@example.com"
               className="pl-10"
             />
@@ -244,7 +293,7 @@ export function CMRARegistrationFlow() {
               id="emailConfirm"
               type="email"
               value={registrationData.emailConfirm}
-              onChange={(e) => setRegistrationData({ ...registrationData, emailConfirm: e.target.value })}
+              onChange={(e) => setRegistrationData((prev) => ({ ...prev, emailConfirm: e.target.value }))}
               placeholder="Confirm your email"
               className="pl-10"
             />
@@ -267,7 +316,7 @@ export function CMRARegistrationFlow() {
               id="password"
               type={showPassword ? "text" : "password"}
               value={registrationData.password}
-              onChange={(e) => setRegistrationData({ ...registrationData, password: e.target.value })}
+              onChange={(e) => setRegistrationData((prev) => ({ ...prev, password: e.target.value }))}
               placeholder="Create a strong password"
               className="pl-10 pr-10"
             />
@@ -289,7 +338,7 @@ export function CMRARegistrationFlow() {
               id="passwordConfirm"
               type={showPasswordConfirm ? "text" : "password"}
               value={registrationData.passwordConfirm}
-              onChange={(e) => setRegistrationData({ ...registrationData, passwordConfirm: e.target.value })}
+              onChange={(e) => setRegistrationData((prev) => ({ ...prev, passwordConfirm: e.target.value }))}
               placeholder="Confirm your password"
               className="pl-10 pr-10"
             />
@@ -362,10 +411,10 @@ export function CMRARegistrationFlow() {
             <Select
               value={registrationData.photoId.type}
               onValueChange={(value) =>
-                setRegistrationData({
-                  ...registrationData,
-                  photoId: { ...registrationData.photoId, type: value },
-                })
+                setRegistrationData((prev) => ({
+                  ...prev,
+                  photoId: { ...prev.photoId, type: value },
+                }))
               }
             >
               <SelectTrigger className="mt-1">
@@ -424,10 +473,10 @@ export function CMRARegistrationFlow() {
             <Select
               value={registrationData.addressId.type}
               onValueChange={(value) =>
-                setRegistrationData({
-                  ...registrationData,
-                  addressId: { ...registrationData.addressId, type: value },
-                })
+                setRegistrationData((prev) => ({
+                  ...prev,
+                  addressId: { ...prev.addressId, type: value },
+                }))
               }
             >
               <SelectTrigger className="mt-1">
@@ -509,7 +558,7 @@ export function CMRARegistrationFlow() {
       <CardContent className="p-8 space-y-6">
         <div className="space-y-4">
           <div
-            onClick={() => setRegistrationData({ ...registrationData, role: "owner" })}
+            onClick={() => setRegistrationData((prev) => ({ ...prev, role: "owner" }))}
             className={`border-2 rounded-lg p-6 cursor-pointer transition-all ${
               registrationData.role === "owner"
                 ? "border-emerald-500 bg-emerald-50"
@@ -532,7 +581,7 @@ export function CMRARegistrationFlow() {
           </div>
 
           <div
-            onClick={() => setRegistrationData({ ...registrationData, role: "manager" })}
+            onClick={() => setRegistrationData((prev) => ({ ...prev, role: "manager" }))}
             className={`border-2 rounded-lg p-6 cursor-pointer transition-all ${
               registrationData.role === "manager"
                 ? "border-emerald-500 bg-emerald-50"
@@ -554,7 +603,7 @@ export function CMRARegistrationFlow() {
           </div>
 
           <div
-            onClick={() => setRegistrationData({ ...registrationData, role: "employee" })}
+            onClick={() => setRegistrationData((prev) => ({ ...prev, role: "employee" }))}
             className={`border-2 rounded-lg p-6 cursor-pointer transition-all ${
               registrationData.role === "employee"
                 ? "border-emerald-500 bg-emerald-50"
@@ -734,7 +783,7 @@ export function CMRARegistrationFlow() {
             <div>
               <h5 className="font-semibold text-slate-900 mb-1">Visit USPS Station Manager</h5>
               <p className="text-sm text-slate-600">
-                Bring your printed form and photo ID to your local USPS station manager for verification
+                Bring your printed form and photo identification to your local USPS station manager for verification
               </p>
             </div>
           </div>
@@ -818,7 +867,7 @@ export function CMRARegistrationFlow() {
                 Take a clear photo of your signed Form 1583-A with station manager counter-signature
               </p>
               <Button
-                onClick={() => setRegistrationData({ ...registrationData, executedFormUploaded: true })}
+                onClick={() => setRegistrationData((prev) => ({ ...prev, executedFormUploaded: true }))}
                 className="bg-emerald-600 hover:bg-emerald-700"
               >
                 <Camera className="h-4 w-4 mr-2" />
@@ -859,8 +908,19 @@ export function CMRARegistrationFlow() {
               </ol>
             </div>
 
-            <Button onClick={handleNextStep} className="w-full bg-emerald-600 hover:bg-emerald-700">
-              Complete Registration
+            <Button
+              onClick={handleCompleteRegistration}
+              disabled={isProcessing}
+              className="w-full bg-emerald-600 hover:bg-emerald-700"
+            >
+              {isProcessing ? (
+                <>
+                  <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2" />
+                  Anchoring to Blockchain...
+                </>
+              ) : (
+                "Complete Registration"
+              )}
             </Button>
           </>
         )}
@@ -934,14 +994,13 @@ export function CMRARegistrationFlow() {
 
         <div className="space-y-3">
           <Button
-            onClick={() => (window.location.href = "/cmragent")}
+            onClick={() => (window.location.href = "/login")}
             className="w-full bg-emerald-600 hover:bg-emerald-700"
-            disabled
           >
             <Building className="h-4 w-4 mr-2" />
-            Access Dashboard (Available After Verification)
+            Sign In to Dashboard
           </Button>
-          <Button onClick={() => (window.location.href = "/")} variant="outline" className="w-full">
+          <Button onClick={() => (window.location.href = "/")} variant="outline" className="w-full bg-transparent">
             Return to Home
           </Button>
         </div>
@@ -952,13 +1011,16 @@ export function CMRARegistrationFlow() {
   return (
     <div className="min-h-screen py-12 px-4">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-6">
+        <div className="mb-6 flex gap-3">
+          <Button variant="outline" onClick={() => (window.location.href = "/")} className="bg-white hover:bg-slate-50">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Home
+          </Button>
           <Button
             variant="outline"
             onClick={() => (window.location.href = "/demo-v31")}
             className="bg-white hover:bg-slate-50"
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
             Return to Demo
           </Button>
         </div>

@@ -462,7 +462,12 @@ export default function V3aWitnessFlow() {
               </div>
 
               <div className="flex space-x-4">
-                <Button className="flex-1 bg-purple-600 hover:bg-purple-700 text-white">View Dashboard</Button>
+                <Button
+                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+                  onClick={() => (window.location.href = "/dashboard")}
+                >
+                  View My Dashboard
+                </Button>
                 <Button variant="outline" className="flex-1 bg-transparent">
                   Download Receipt
                 </Button>

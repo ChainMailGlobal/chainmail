@@ -201,72 +201,64 @@ export default function MailboxHeroDemoV31() {
           </div>
 
           <div className="px-4 mb-8">
-            <Card
-              className="relative overflow-hidden hover:shadow-xl transition-all duration-300 border-0 shadow-lg hover:scale-105 cursor-pointer"
-              onClick={() => (window.location.href = "/cmragent/register")} // Link to actual registration instead of demo flow
-            >
+            <Card className="relative overflow-hidden hover:shadow-xl transition-all duration-300 border-0 shadow-lg">
               <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-slate-500 to-slate-600" />
               <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-4 mb-3">
-                      <Badge variant="secondary" className="font-semibold">
-                        CMRA Platform
-                      </Badge>
-                      <Badge className="bg-red-100 text-red-800 border-red-300">Verification Required</Badge>
-                      <div className="text-2xl font-bold text-slate-400">04</div>
-                    </div>
-                    <h3 className="text-xl font-bold mb-2">CMRAgent: CMRA Operations</h3>
-                    <p className="text-base text-slate-600 mb-4">
-                      Complete CMRA management platform with Form 1583-A onboarding
-                    </p>
-                    <div className="grid md:grid-cols-2 gap-3">
-                      {versions[3].features.map((feature, index) => (
-                        <div key={index} className="flex items-center text-sm">
-                          <div className="h-2 w-2 rounded-full bg-slate-500 mr-3 flex-shrink-0" />
-                          <span className="text-slate-700">{feature}</span>
-                        </div>
-                      ))}
-                    </div>
+                <div className="mb-6">
+                  <div className="flex items-center space-x-4 mb-3">
+                    <Badge variant="secondary" className="font-semibold">
+                      CMRA Platform
+                    </Badge>
+                    <Badge className="bg-red-100 text-red-800 border-red-300">Verification Required</Badge>
+                    <div className="text-2xl font-bold text-slate-400">04</div>
                   </div>
-                  <div className="ml-8">
+                  <h3 className="text-xl font-bold mb-2">CMRAgent: CMRA Operations</h3>
+                  <p className="text-base text-slate-600 mb-4">
+                    Complete CMRA management platform with Form 1583-A onboarding
+                  </p>
+                  <div className="grid md:grid-cols-2 gap-3 mb-6">
+                    {versions[3].features.map((feature, index) => (
+                      <div key={index} className="flex items-center text-sm">
+                        <div className="h-2 w-2 rounded-full bg-slate-500 mr-3 flex-shrink-0" />
+                        <span className="text-slate-700">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="border-2 border-emerald-200 rounded-lg p-4 bg-emerald-50">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <CheckCircle className="w-5 h-5 text-emerald-600" />
+                      <h4 className="font-semibold text-emerald-900">Already Filed Form 1583</h4>
+                    </div>
+                    <p className="text-sm text-emerald-700 mb-4">
+                      Complete autonomous AI witness session for regular Form 1583 to activate your CMRA dashboard
+                    </p>
+                    <a href="/cmragent/witness/v3b">
+                      <button className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:opacity-90 text-white py-3 px-4 rounded-lg font-medium transition-all duration-200">
+                        Start AI Witness Session
+                      </button>
+                    </a>
+                  </div>
+
+                  <div className="border-2 border-blue-200 rounded-lg p-4 bg-blue-50">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <FileText className="w-5 h-5 text-blue-600" />
+                      <h4 className="font-semibold text-blue-900">Need Form 1583-A</h4>
+                    </div>
+                    <p className="text-sm text-blue-700 mb-4">
+                      Complete form generation and postal station verification process
+                    </p>
                     <a href="/cmragent/register">
-                      <button
-                        className="bg-gradient-to-r from-slate-500 to-slate-600 hover:opacity-90 text-white py-3 px-6 rounded-lg font-medium transition-all duration-200"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                        }}
-                      >
-                        Launch CMRAgent
+                      <button className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:opacity-90 text-white py-3 px-4 rounded-lg font-medium transition-all duration-200">
+                        Start Registration
                       </button>
                     </a>
                   </div>
                 </div>
               </CardContent>
             </Card>
-          </div>
-
-          <div className="bg-white rounded-2xl p-8 shadow-lg border-0 mx-4">
-            <h3 className="text-2xl font-bold text-center mb-8">Strategic Business Metrics</h3>
-            <div className="grid md:grid-cols-4 gap-6 text-center">
-              <div>
-                <div className="text-3xl font-bold text-emerald-600 mb-2">$606K</div>
-                <div className="text-sm text-slate-600">Bootstrap Revenue Target</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-purple-600 mb-2">84.2%</div>
-                <div className="text-sm text-slate-600">Profit Margins</div>
-              </div>
-              <div>
-                {/* Updated CMRA locations from 2,300+ to 23,000+ */}
-                <div className="text-3xl font-bold text-blue-600 mb-2">23,000+</div>
-                <div className="text-sm text-slate-600">CMRA Locations</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-slate-700 mb-2">USPS</div>
-                <div className="text-sm text-slate-600">Pilot Program Ready</div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -639,7 +631,7 @@ export default function MailboxHeroDemoV31() {
     )
   }
 
-  const CMRAAgentFlow = () => {
+  const CMRAgentFlow = () => {
     const cmrAgentSteps = [
       {
         title: "CMRA Registration",
@@ -911,37 +903,37 @@ export default function MailboxHeroDemoV31() {
         description:
           "Customer arrives at CMRA office and scans QR code displayed in office to open witnessing module on their device",
         icon: Smartphone,
-        visual: "/smartphone-camera-scanning-qr-code-at-cmra-office.png",
+        visual: "/smartphone-camera-scanning-qr-code-at-cmra-office.jpg",
       },
       {
         title: "Split-Screen Recording Starts",
         description: "Top: Live face video | Bottom: Digital signature pad",
         icon: Camera,
-        visual: "/split-screen-interface-with-face-video-above-and-sign.png",
+        visual: "/split-screen-interface-with-face-video-above-and-sign.jpg",
       },
       {
         title: "Customer Verbal Acknowledgment",
         description: '"I acknowledge this is my signature" + digital signature capture',
         icon: Signature,
-        visual: "/person-speaking-acknowledgment-while-signing-digital.png",
+        visual: "/person-speaking-acknowledgment-while-signing-digital.jpg",
       },
       {
         title: "CMRA Agent Counter-Signs",
         description: "CMRA agent gives acknowledgment and signs on their own pad",
         icon: Shield,
-        visual: "/cmra-agent-counter-signing-on-tablet-device.png",
+        visual: "/cmra-agent-counter-signing-on-tablet-device.jpg",
       },
       {
         title: "PDF Generated & Mailbox Enabled",
         description: "Both signatures submitted, PDF generated, all parties notified",
         icon: FileText,
-        visual: "/completed-form-1583-pdf-with-digital-signatures.png",
+        visual: "/completed-form-1583-pdf-with-digital-signatures.jpg",
       },
       {
         title: "Audit Trail & Storage",
         description: "All materials stored in IPFS, blockchain audit trail created",
         icon: CheckCircle,
-        visual: "/blockchain-audit-trail-visualization-with-checkm.png",
+        visual: "/blockchain-audit-trail-visualization-with-checkm.jpg",
       },
     ]
 
@@ -1094,31 +1086,31 @@ export default function MailboxHeroDemoV31() {
         title: "Schedule Remote Session",
         description: "Book appointment via Google Calendar/Calendly integration",
         icon: Calendar,
-        visual: "/calendar-interface-showing-available-appointment.png",
+        visual: "/calendar-interface-showing-available-appointment.jpg", // Updated to .jpg
       },
       {
         title: "Join Video Call & Activate Module",
         description: "Customer joins video call, witnessing module activates automatically",
         icon: Video,
-        visual: "/split-screen-video-call-interface-with-customer.png",
+        visual: "/split-screen-video-call-interface-with-customer.jpg", // Updated to .jpg
       },
       {
         title: "Verbal Acknowledgment & Signature",
         description: "Customer acknowledges on camera and signs digitally",
         icon: Signature,
-        visual: "/person-above-digital-signature-pad-interface.png",
+        visual: "/person-above-digital-signature-pad-interface.jpg", // Updated to .jpg
       },
       {
         title: "CMRA Witness Confirmation",
         description: "CMRA agent (audio/video) confirms and counter-signs",
         icon: Shield,
-        visual: "/cmra-agent-witnessing-remotely-on-video-call.png",
+        visual: "/cmra-agent-witnessing-remotely-on-video-call.jpg", // Updated to .jpg
       },
       {
         title: "Evidence Storage & Dashboard Delivery",
         description: "Video stored in IPFS, executed PDF delivered to both dashboards",
         icon: FileText,
-        visual: "/dashboard-showing-completed-form-1583-with-video.png",
+        visual: "/dashboard-showing-completed-form-1583-with-video.jpg", // Updated to .jpg
       },
     ]
 
@@ -1487,7 +1479,7 @@ export default function MailboxHeroDemoV31() {
         {currentStep === "flow" && selectedVersion === "v1" && <V1WetInkFlow />}
         {currentStep === "flow" && selectedVersion === "v2" && <V2HybridFlow />}
         {currentStep === "flow" && selectedVersion === "v3" && <V3AIWitnessFlow />}
-        {currentStep === "flow" && selectedVersion === "cmragent" && <CMRAAgentFlow />}
+        {currentStep === "flow" && selectedVersion === "cmragent" && <CMRAgentFlow />}
         {currentStep === "complete" && <CompletionScreen />}
       </motion.div>
     </AnimatePresence>

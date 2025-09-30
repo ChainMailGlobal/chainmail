@@ -34,6 +34,10 @@ export type Database = {
           business_name: string
           license_number: string
           is_verified: boolean
+          eth_anchor_hash: string | null
+          eth_anchor_tx_hash: string | null
+          eth_anchor_block: number | null
+          eth_anchor_timestamp: string | null
           created_at: string
           updated_at: string
         }
@@ -43,6 +47,10 @@ export type Database = {
           business_name: string
           license_number: string
           is_verified?: boolean
+          eth_anchor_hash?: string | null
+          eth_anchor_tx_hash?: string | null
+          eth_anchor_block?: number | null
+          eth_anchor_timestamp?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -52,6 +60,10 @@ export type Database = {
           business_name?: string
           license_number?: string
           is_verified?: boolean
+          eth_anchor_hash?: string | null
+          eth_anchor_tx_hash?: string | null
+          eth_anchor_block?: number | null
+          eth_anchor_timestamp?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -70,6 +82,10 @@ export type Database = {
           signature_url: string | null
           confidence_score: number | null
           ai_analysis: any | null
+          xrpl_anchor_hash: string | null
+          xrpl_tx_hash: string | null
+          xrpl_ledger_seq: number | null
+          xrpl_anchor_timestamp: string | null
           created_at: string
           updated_at: string
         }
@@ -86,6 +102,10 @@ export type Database = {
           signature_url?: string | null
           confidence_score?: number | null
           ai_analysis?: any | null
+          xrpl_anchor_hash?: string | null
+          xrpl_tx_hash?: string | null
+          xrpl_ledger_seq?: number | null
+          xrpl_anchor_timestamp?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -102,6 +122,10 @@ export type Database = {
           signature_url?: string | null
           confidence_score?: number | null
           ai_analysis?: any | null
+          xrpl_anchor_hash?: string | null
+          xrpl_tx_hash?: string | null
+          xrpl_ledger_seq?: number | null
+          xrpl_anchor_timestamp?: string | null
           created_at?: string
           updated_at?: string
         }

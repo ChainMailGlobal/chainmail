@@ -21,7 +21,12 @@ import {
 } from "lucide-react"
 import { useConfidenceScoring } from "@/hooks/use-confidence-scoring"
 import { ConfidenceDisplay } from "@/components/v3b/confidence-display"
-import { startWitnessSession, saveCustomerSignature, completeWitnessSession } from "@/lib/actions/v3b-actions"
+import {
+  startWitnessSession,
+  saveCustomerSignature,
+  completeWitnessSession,
+  saveWitnessConfirmation,
+} from "@/lib/actions/v3b-actions"
 import { logSessionEvent } from "@/lib/v3b-client"
 
 type WitnessStep =
@@ -32,6 +37,7 @@ type WitnessStep =
   | "liveness-check"
   | "gps-verify"
   | "signature-capture"
+  | "cmra-counter-signature" // Added CMRA counter-signature step
   | "ai-witness"
   | "blockchain-record"
   | "complete"
@@ -50,6 +56,7 @@ export default function V3bWitnessFlow() {
   const [isVideoOn, setIsVideoOn] = useState(true)
   const [progress, setProgress] = useState(0)
   const [signatureData, setSignatureData] = useState<string | null>(null)
+  const [cmraSignatureData, setCmraSignatureData] = useState<string | null>(null) // Added CMRA signature state
   const [biometrics, setBiometrics] = useState<BiometricData>({
     faceMatch: 0,
     livenessScore: 0,
@@ -58,6 +65,7 @@ export default function V3bWitnessFlow() {
   })
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const cmraCanvasRef = useRef<HTMLCanvasElement>(null) // Added CMRA signature canvas ref
 
   const [sessionId, setSessionId] = useState<string>("")
   const [sessionStartTime, setSessionStartTime] = useState<number>(0)
@@ -197,6 +205,41 @@ export default function V3bWitnessFlow() {
         })
 
         setBiometrics((prev) => ({ ...prev, signatureConfidence: 96.4 }))
+
+        setCurrentStep("cmra-counter-signature")
+        setIsSubmitting(false)
+      }
+    }
+  }
+
+  const handleCmraCounterSignature = async () => {
+    if (cmraCanvasRef.current && sessionId) {
+      const canvas = cmraCanvasRef.current
+      const ctx = canvas.getContext("2d")
+      if (ctx) {
+        // Simulate CMRA signature drawing
+        ctx.strokeStyle = "#000"
+        ctx.lineWidth = 2
+        ctx.beginPath()
+        ctx.moveTo(50, 80)
+        ctx.lineTo(150, 60)
+        ctx.stroke()
+
+        const dataUrl = canvas.toDataURL()
+        setCmraSignatureData(dataUrl)
+
+        setIsSubmitting(true)
+
+        // Save CMRA witness confirmation
+        const confirmation = "I witnessed John Smith signing Form 1583 and verbally confirming their identity"
+        const result = await saveWitnessConfirmation(sessionId, confirmation, dataUrl)
+        console.log("[v0] CMRA counter-signature saved:", result)
+
+        await logSessionEvent(sessionId, "cmra_counter_signature", {
+          signatureUrl: dataUrl,
+          confirmation,
+        })
+
         setCurrentStep("ai-witness")
         setIsSubmitting(false)
 
@@ -204,7 +247,7 @@ export default function V3bWitnessFlow() {
           const analysis = await analyzeFullSession({
             customerName: "John Smith",
             duration: Math.floor((Date.now() - sessionStartTime) / 1000),
-            verbalAcknowledgment: mockVerbal,
+            verbalAcknowledgment,
           })
 
           console.log("[v0] AI Analysis complete:", analysis)
@@ -511,6 +554,7 @@ export default function V3bWitnessFlow() {
 
         {/* Signature Capture, AI Witness, Blockchain Steps */}
         {(currentStep === "signature-capture" ||
+          currentStep === "cmra-counter-signature" || // Added CMRA counter-signature step
           currentStep === "ai-witness" ||
           currentStep === "blockchain-record") && (
           <div className="space-y-4">
@@ -522,7 +566,9 @@ export default function V3bWitnessFlow() {
                     {isRecording && (
                       <div className="flex items-center space-x-2">
                         <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-                        <span className="text-sm font-medium text-red-600">AI Recording</span>
+                        <span className="text-sm font-medium text-red-600">
+                          {currentStep === "cmra-counter-signature" ? "CMRA Witnessing" : "AI Recording"}
+                        </span>
                       </div>
                     )}
                     <div className="flex items-center space-x-2 text-sm text-slate-600">
@@ -531,7 +577,9 @@ export default function V3bWitnessFlow() {
                     </div>
                     <div className="flex items-center space-x-2 text-sm text-emerald-600">
                       <Brain className="w-4 h-4" />
-                      <span>AI Witness Active</span>
+                      <span>
+                        {currentStep === "cmra-counter-signature" ? "CMRA Counter-Signing" : "AI Witness Active"}
+                      </span>
                     </div>
                   </div>
 
@@ -560,7 +608,9 @@ export default function V3bWitnessFlow() {
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg flex items-center space-x-2">
                     <Video className="w-5 h-5 text-emerald-600" />
-                    <span>Biometric Video Feed</span>
+                    <span>
+                      {currentStep === "cmra-counter-signature" ? "CMRA Forward-Facing Camera" : "Biometric Video Feed"}
+                    </span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -569,14 +619,25 @@ export default function V3bWitnessFlow() {
                     {/* AI analysis overlay */}
                     <div className="absolute inset-0">
                       <div className="absolute top-4 left-4 space-y-2">
-                        <div className="bg-emerald-500/90 text-white text-xs px-3 py-1 rounded">
-                          Face Match: {biometrics.faceMatch.toFixed(1)}%
-                        </div>
-                        <div className="bg-emerald-500/90 text-white text-xs px-3 py-1 rounded">
-                          Liveness: {biometrics.livenessScore.toFixed(1)}%
-                        </div>
-                        {biometrics.gpsVerified && (
-                          <div className="bg-emerald-500/90 text-white text-xs px-3 py-1 rounded">GPS: Verified</div>
+                        {currentStep === "cmra-counter-signature" ? (
+                          <>
+                            <div className="bg-blue-500/90 text-white text-xs px-3 py-1 rounded">CMRA Witnessing</div>
+                            <div className="bg-blue-500/90 text-white text-xs px-3 py-1 rounded">Live Camera Feed</div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="bg-emerald-500/90 text-white text-xs px-3 py-1 rounded">
+                              Face Match: {biometrics.faceMatch.toFixed(1)}%
+                            </div>
+                            <div className="bg-emerald-500/90 text-white text-xs px-3 py-1 rounded">
+                              Liveness: {biometrics.livenessScore.toFixed(1)}%
+                            </div>
+                            {biometrics.gpsVerified && (
+                              <div className="bg-emerald-500/90 text-white text-xs px-3 py-1 rounded">
+                                GPS: Verified
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>
@@ -589,28 +650,38 @@ export default function V3bWitnessFlow() {
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg flex items-center space-x-2">
                     <FileText className="w-5 h-5 text-emerald-600" />
-                    <span>Digital Signature Pad</span>
+                    <span>
+                      {currentStep === "cmra-counter-signature"
+                        ? "CMRA Counter-Signature Pad"
+                        : "Digital Signature Pad"}
+                    </span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="bg-white border-2 border-slate-300 rounded-lg p-4">
                     <canvas
-                      ref={canvasRef}
+                      ref={currentStep === "cmra-counter-signature" ? cmraCanvasRef : canvasRef}
                       width={600}
                       height={200}
                       className="w-full border border-slate-200 rounded cursor-crosshair"
                       style={{ touchAction: "none" }}
                     />
                     <div className="flex justify-between items-center mt-4">
-                      <p className="text-sm text-slate-600">Sign above with your finger or mouse</p>
+                      <p className="text-sm text-slate-600">
+                        {currentStep === "cmra-counter-signature"
+                          ? "CMRA: Sign to confirm you witnessed the customer signing"
+                          : "Sign above with your finger or mouse"}
+                      </p>
                       <div className="flex space-x-2">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            const ctx = canvasRef.current?.getContext("2d")
-                            if (ctx && canvasRef.current) {
-                              ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height)
+                            const canvas =
+                              currentStep === "cmra-counter-signature" ? cmraCanvasRef.current : canvasRef.current
+                            const ctx = canvas?.getContext("2d")
+                            if (ctx && canvas) {
+                              ctx.clearRect(0, 0, canvas.width, canvas.height)
                             }
                           }}
                           disabled={isSubmitting}
@@ -627,6 +698,16 @@ export default function V3bWitnessFlow() {
                             {isSubmitting ? "Submitting..." : "Submit Signature"}
                           </Button>
                         )}
+                        {currentStep === "cmra-counter-signature" && (
+                          <Button
+                            size="sm"
+                            onClick={handleCmraCounterSignature}
+                            className="bg-blue-600 hover:bg-blue-700"
+                            disabled={isSubmitting}
+                          >
+                            {isSubmitting ? "Submitting..." : "Submit Counter-Signature"}
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -640,6 +721,36 @@ export default function V3bWitnessFlow() {
                       <div className="flex items-center space-x-2 text-sm text-emerald-700">
                         <Mic className="w-4 h-4" />
                         <span>Listening for verbal acknowledgment...</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {currentStep === "cmra-counter-signature" && (
+                    <div className="mt-4 bg-blue-50 p-4 rounded-lg border border-blue-200">
+                      <div className="flex items-center space-x-3 mb-3">
+                        <Shield className="w-5 h-5 text-blue-600" />
+                        <span className="font-semibold text-blue-900">CMRA Witness Confirmation</span>
+                      </div>
+                      <div className="space-y-2 text-sm text-blue-800">
+                        <div className="flex items-center space-x-2">
+                          <CheckCircle className="w-4 h-4 text-green-600" />
+                          <span>Customer signature captured</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <CheckCircle className="w-4 h-4 text-green-600" />
+                          <span>Verbal acknowledgment recorded</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <CheckCircle className="w-4 h-4 text-green-600" />
+                          <span>Identity verified</span>
+                        </div>
+                        <div className="mt-3 p-3 bg-white rounded border border-blue-200">
+                          <p className="font-medium text-blue-900 mb-1">CMRA Attestation:</p>
+                          <p className="text-xs text-blue-700">
+                            "I witnessed the customer signing this document and verbally confirming their identity and
+                            agreement to the terms."
+                          </p>
+                        </div>
                       </div>
                     </div>
                   )}
