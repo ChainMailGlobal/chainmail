@@ -1,35 +1,34 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Updated color tokens to match CMRAgent design brief with emerald green primary and clean neutrals */
-  --background: oklch(1 0 0); /* Pure white */
-  --foreground: oklch(0.145 0 0); /* Dark slate grey #475569 */
-  --card: oklch(1 0 0); /* Light grey #f1f5f9 */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0); /* Emerald-600 #059669 */
-  --primary-foreground: oklch(0.985 0 0); /* White text on primary */
-  --secondary: oklch(0.97 0 0); /* Light grey for cards */
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0); /* Emerald-500 #10b981 for highlights */
+  --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0); /* Light border #e5e7eb */
+  --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0); /* Primary color for focus rings */
+  --ring: oklch(0.708 0 0);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --radius: 0.625rem; /* Soft corner rounding */
+  --radius: 0.625rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
@@ -47,7 +46,7 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.145 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0); /* Lighter emerald for dark mode */
+  --primary: oklch(0.985 0 0);
   --primary-foreground: oklch(0.205 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
@@ -76,6 +75,8 @@
 }
 
 @theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -120,28 +121,5 @@
   }
   body {
     @apply bg-background text-foreground;
-  }
-}
-
-@layer components {
-  .dashboard-card {
-    @apply bg-card border border-border rounded-lg p-6;
-  }
-
-  .status-badge-compliant {
-    @apply bg-emerald-500/10 text-emerald-500 border border-emerald-500/20;
-  }
-
-  .status-badge-in-progress {
-    @apply bg-blue-500/10 text-blue-500 border border-blue-500/20;
-  }
-
-  .status-badge-flagged {
-    @apply bg-red-500/10 text-red-500 border border-red-500/20;
-  }
-
-  .timeline-item::before {
-    @apply absolute left-0 top-2 w-2 h-2 rounded-full bg-primary;
-    content: "";
   }
 }
