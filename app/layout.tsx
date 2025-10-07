@@ -2,7 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Playfair_Display, Source_Sans_3 as Source_Sans_Pro } from "next/font/google"
 import "./globals.css"
-import MailboxHeroChat from "@/components/MailboxHeroChat"
+import CMRAChatWidget from "@/components/CMRAChatWidget"
 
 const playfairDisplay = Playfair_Display({
   subsets: ["latin"],
@@ -34,7 +34,7 @@ export default function RootLayout({
     <html lang="en" className={`${playfairDisplay.variable} ${sourceSansPro.variable}`}>
       <body className="font-body antialiased">
         {children}
-        <MailboxHeroChat />
+        <CMRAChatWidget />
       </body>
     </html>
   )
