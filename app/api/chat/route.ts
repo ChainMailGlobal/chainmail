@@ -1,63 +1,58 @@
+import { streamText } from "ai"
+import { createOpenAI } from "@ai-sdk/openai"
 import type { NextRequest } from "next/server"
-import OpenAI from "openai"
 
-const openai = new OpenAI({
+export const maxDuration = 30
+
+const openai = createOpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 })
-
-export const runtime = "nodejs"
-export const dynamic = "force-dynamic"
 
 const SYSTEM_PROMPT = `You are MailboxHero CMRA Agent helping users complete USPS Form 1583. Be friendly, use "Aloha", and guide step-by-step. Explain DMM 508.1.8 compliance clearly. Keep responses concise (2-3 sentences).`
 
 export async function POST(req: NextRequest) {
   try {
+    console.log("[v0] Chat API called")
     const { messages, context } = await req.json()
+    console.log("[v0] Received messages:", messages?.length)
 
-    const systemMessage = {
-      role: "system" as const,
-      content: SYSTEM_PROMPT + (context ? `\n\nContext:\n${JSON.stringify(context)}` : ""),
-    }
+    const formattedMessages = messages.map((m: any) => ({
+      role: m.from === "user" ? "user" : "assistant",
+      content: m.text,
+    }))
 
-    const openaiMessages = [
-      systemMessage,
-      ...messages.map((m: any) => ({
-        role: m.from === "user" ? ("user" as const) : ("assistant" as const),
-        content: m.text,
-      })),
+    const allMessages = [
+      {
+        role: "system" as const,
+        content: SYSTEM_PROMPT + (context ? `\n\nContext:\n${JSON.stringify(context)}` : ""),
+      },
+      ...formattedMessages,
     ]
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: openaiMessages,
+    console.log("[v0] Calling streamText with OpenAI gpt-4o")
+
+    const result = streamText({
+      model: openai("gpt-4o"),
+      messages: allMessages,
       temperature: 0.7,
-      max_tokens: 500,
-      stream: true,
+      maxTokens: 500,
+      abortSignal: req.signal,
     })
 
-    const encoder = new TextEncoder()
-    const stream = new ReadableStream({
-      async start(controller) {
-        for await (const chunk of response) {
-          const content = chunk.choices[0]?.delta?.content || ""
-          if (content) controller.enqueue(encoder.encode(content))
-        }
-        controller.close()
-      },
-    })
+    console.log("[v0] Streaming response started")
 
-    return new Response(stream, {
-      headers: {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
-        Connection: "keep-alive",
-      },
-    })
+    return result.toTextStreamResponse()
   } catch (error) {
-    console.error("Chat API error:", error)
-    return new Response(JSON.stringify({ error: "Failed to process chat request" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    })
+    console.error("[v0] Chat API error:", error)
+    return new Response(
+      JSON.stringify({
+        error: "Failed to process chat request",
+        details: error instanceof Error ? error.message : "Unknown error",
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      },
+    )
   }
 }

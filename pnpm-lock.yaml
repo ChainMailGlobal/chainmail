@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@ai-sdk/openai':
+        specifier: latest
+        version: 2.0.43(zod@3.25.67)
       '@ai-sdk/rsc':
         specifier: latest
         version: 1.0.60(react@18.0.0)(zod@3.25.67)
@@ -159,7 +162,7 @@ importers:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@18.0.0(react@18.0.0))(react@18.0.0)
       openai:
-        specifier: latest
+        specifier: 6.2.0
         version: 6.2.0(ws@8.18.3)(zod@3.25.67)
       react:
         specifier: ^18
@@ -194,9 +197,6 @@ importers:
       vaul:
         specifier: ^0.9.9
         version: 0.9.9(@types/react-dom@18.0.0)(@types/react@18.0.0)(react-dom@18.0.0(react@18.0.0))(react@18.0.0)
-      ws:
-        specifier: latest
-        version: 8.18.3
       xrpl:
         specifier: latest
         version: 4.4.2
@@ -236,6 +236,12 @@ packages:
 
   '@ai-sdk/gateway@1.0.33':
     resolution: {integrity: sha512-v9i3GPEo4t3fGcSkQkc07xM6KJN75VUv7C1Mqmmsu2xD8lQwnQfsrgAXyNuWe20yGY0eHuheSPDZhiqsGKtH1g==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: ^3.25.76 || ^4.1.8
+
+  '@ai-sdk/openai@2.0.43':
+    resolution: {integrity: sha512-ktxQ2V7+XXKHOHtApzNsuyE5LFLppI7mg5qHHUaoLHzATNARO6q84ZEqpEVQxXnRtG6PjE2dgAmITowWHLeBew==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
@@ -2065,6 +2071,12 @@ snapshots:
       '@ai-sdk/provider': 2.0.0
       '@ai-sdk/provider-utils': 3.0.10(zod@3.25.67)
       '@vercel/oidc': 3.0.1
+      zod: 3.25.67
+
+  '@ai-sdk/openai@2.0.43(zod@3.25.67)':
+    dependencies:
+      '@ai-sdk/provider': 2.0.0
+      '@ai-sdk/provider-utils': 3.0.10(zod@3.25.67)
       zod: 3.25.67
 
   '@ai-sdk/provider-utils@3.0.10(zod@3.25.67)':

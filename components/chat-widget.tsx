@@ -16,12 +16,28 @@ type FormData = {
   phone?: string
 }
 
+type ScreeningData = {
+  userType: "cmra_owner" | "cmra_customer" | "individual" | null
+  has1583a: boolean | null
+  witnessPreference: "in_person" | "video" | "ai_witness" | null
+  flow: "1583a_registration" | "1583_owner" | "1583_customer" | "cmra_search" | null
+}
+
+type CurrentStep = "prescreen" | "start" | "profile" | "documents" | "review"
+
 export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false)
+  const [currentStep, setCurrentStep] = useState<CurrentStep>("prescreen")
+  const [screeningData, setScreeningData] = useState<ScreeningData>({
+    userType: null,
+    has1583a: null,
+    witnessPreference: null,
+    flow: null,
+  })
   const [messages, setMessages] = useState<Message[]>([
     {
       from: "assistant",
-      text: "Aloha! I'm CMRAgent. I can help you complete your Form 1583 in just 3 minutes. Ready to get started?",
+      text: "Aloha! Are you a CMRA owner, a customer of a CMRA, or looking for CMRA services?",
     },
   ])
   const [input, setInput] = useState("")
@@ -133,6 +149,92 @@ export default function ChatWidget() {
     handleSend(quickMessage)
   }
 
+  const handleUserTypeSelection = async (userType: "cmra_owner" | "cmra_customer" | "individual") => {
+    const userMessage: Message = {
+      from: "user",
+      text:
+        userType === "cmra_owner"
+          ? "I'm a CMRA Owner"
+          : userType === "cmra_customer"
+            ? "I'm a CMRA Customer"
+            : "Looking for CMRA Services",
+    }
+
+    setMessages((prev) => [...prev, userMessage])
+    setScreeningData((prev) => ({ ...prev, userType }))
+    setIsTyping(true)
+
+    // Determine next question based on user type
+    let nextQuestion = ""
+    if (userType === "cmra_owner") {
+      nextQuestion = "Have you filed Form 1583-A with USPS yet?"
+    } else if (userType === "cmra_customer") {
+      nextQuestion = "Were you sent here by your CMRA? How would you like to complete witness verification?"
+    } else {
+      nextQuestion = "What's your ZIP code? I'll help you find nearby CMRAs."
+    }
+
+    setTimeout(() => {
+      setMessages((prev) => [...prev, { from: "assistant", text: nextQuestion }])
+      setIsTyping(false)
+    }, 1000)
+  }
+
+  const handleWitnessPreference = (preference: "in_person" | "video" | "ai_witness") => {
+    const preferenceText =
+      preference === "ai_witness"
+        ? "AI Witness (Instant • 24/7)"
+        : preference === "video"
+          ? "Video Call with CMRA"
+          : "In-Person at CMRA"
+
+    const userMessage: Message = { from: "user", text: preferenceText }
+    setMessages((prev) => [...prev, userMessage])
+    setScreeningData((prev) => ({ ...prev, witnessPreference: preference, flow: "1583_customer" }))
+    setIsTyping(true)
+
+    setTimeout(() => {
+      setMessages((prev) => [
+        ...prev,
+        {
+          from: "assistant",
+          text: "Perfect! Let's get started with your Form 1583. I'll need some basic information. What's your full name?",
+        },
+      ])
+      setIsTyping(false)
+      setCurrentStep("profile")
+    }, 1000)
+  }
+
+  const handleHas1583A = (hasIt: boolean) => {
+    const userMessage: Message = { from: "user", text: hasIt ? "Yes, I have filed it" : "No, not yet" }
+    setMessages((prev) => [...prev, userMessage])
+    setScreeningData((prev) => ({ ...prev, has1583a: hasIt }))
+    setIsTyping(true)
+
+    setTimeout(() => {
+      if (!hasIt) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            from: "assistant",
+            text: "You need to file Form 1583-A first to register your CMRA business with USPS. Would you like guidance on how to do that?",
+          },
+        ])
+        setScreeningData((prev) => ({ ...prev, flow: "1583a_registration" }))
+      } else {
+        setMessages((prev) => [
+          ...prev,
+          {
+            from: "assistant",
+            text: "Great! Do you need to complete your personal Form 1583 as the CMRA owner?",
+          },
+        ])
+      }
+      setIsTyping(false)
+    }, 1000)
+  }
+
   return (
     <>
       {/* Chat Window */}
@@ -196,18 +298,90 @@ export default function ChatWidget() {
             <div ref={messagesEndRef} />
           </div>
 
-          {messages.length === 1 && (
-            <div className="px-3 md:px-4 pb-2">
+          {/* Quick action buttons for pre-screening */}
+          {currentStep === "prescreen" && messages.length === 1 && (
+            <div className="px-3 md:px-4 pb-2 space-y-2">
               <Button
-                onClick={handleQuickAction}
+                onClick={() => handleUserTypeSelection("cmra_owner")}
                 variant="outline"
                 size="sm"
-                className="w-full text-indigo-600 border-indigo-200 hover:bg-indigo-50 bg-transparent"
+                className="w-full text-indigo-600 border-indigo-200 hover:bg-indigo-50 bg-transparent justify-start"
               >
-                Start Form 1583
+                🏢 I'm a CMRA Owner
+              </Button>
+              <Button
+                onClick={() => handleUserTypeSelection("cmra_customer")}
+                variant="outline"
+                size="sm"
+                className="w-full text-indigo-600 border-indigo-200 hover:bg-indigo-50 bg-transparent justify-start"
+              >
+                📬 I'm a CMRA Customer
+              </Button>
+              <Button
+                onClick={() => handleUserTypeSelection("individual")}
+                variant="outline"
+                size="sm"
+                className="w-full text-indigo-600 border-indigo-200 hover:bg-indigo-50 bg-transparent justify-start"
+              >
+                🔍 Looking for CMRA Services
               </Button>
             </div>
           )}
+
+          {/* Witness preference buttons for CMRA customers */}
+          {currentStep === "prescreen" && screeningData.userType === "cmra_customer" && messages.length >= 3 && (
+            <div className="px-3 md:px-4 pb-2 space-y-2">
+              <Button
+                onClick={() => handleWitnessPreference("ai_witness")}
+                variant="outline"
+                size="sm"
+                className="w-full text-indigo-600 border-indigo-200 hover:bg-indigo-50 bg-transparent justify-start"
+              >
+                🤖 AI Witness (Instant • 24/7)
+              </Button>
+              <Button
+                onClick={() => handleWitnessPreference("video")}
+                variant="outline"
+                size="sm"
+                className="w-full text-indigo-600 border-indigo-200 hover:bg-indigo-50 bg-transparent justify-start"
+              >
+                📹 Video Call with CMRA
+              </Button>
+              <Button
+                onClick={() => handleWitnessPreference("in_person")}
+                variant="outline"
+                size="sm"
+                className="w-full text-indigo-600 border-indigo-200 hover:bg-indigo-50 bg-transparent justify-start"
+              >
+                👤 In-Person at CMRA
+              </Button>
+            </div>
+          )}
+
+          {/* 1583-A response buttons for CMRA owners */}
+          {currentStep === "prescreen" &&
+            screeningData.userType === "cmra_owner" &&
+            screeningData.has1583a === null &&
+            messages.length >= 3 && (
+              <div className="px-3 md:px-4 pb-2 space-y-2">
+                <Button
+                  onClick={() => handleHas1583A(true)}
+                  variant="outline"
+                  size="sm"
+                  className="w-full text-indigo-600 border-indigo-200 hover:bg-indigo-50 bg-transparent"
+                >
+                  Yes, I have filed it
+                </Button>
+                <Button
+                  onClick={() => handleHas1583A(false)}
+                  variant="outline"
+                  size="sm"
+                  className="w-full text-indigo-600 border-indigo-200 hover:bg-indigo-50 bg-transparent"
+                >
+                  No, not yet
+                </Button>
+              </div>
+            )}
 
           {/* Input */}
           <div className="p-3 md:p-4 border-t bg-white">
