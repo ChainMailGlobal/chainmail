@@ -22,9 +22,6 @@ export default function MailboxHeroChat() {
             />
           </svg>
           <span className="font-semibold text-sm">CMRAgent</span>
-          <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-            !
-          </span>
         </button>
       )}
 
