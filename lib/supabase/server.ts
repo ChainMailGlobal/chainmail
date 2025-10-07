@@ -2,16 +2,17 @@ import { createServerClient as createSupabaseServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 
 export async function createServerClient() {
-  const cookieStore = await cookies()
-
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  if (!supabaseUrl || !supabaseKey) {
-    throw new Error("Missing Supabase environment variables")
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.warn("[v0] Supabase not configured. Server auth features are disabled.")
+    return null
   }
 
-  return createSupabaseServerClient(supabaseUrl, supabaseKey, {
+  const cookieStore = await cookies()
+
+  return createSupabaseServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {
         return cookieStore.getAll()
