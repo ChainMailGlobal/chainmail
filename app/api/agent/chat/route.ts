@@ -7,6 +7,9 @@ export async function POST(request: NextRequest) {
     // Get the request body
     const body = await request.json()
 
+    console.log("[v0] Forwarding chat request to backend:", AGENT_BACKEND_BASE)
+    console.log("[v0] Request body:", JSON.stringify(body).substring(0, 100))
+
     // Get cookies from the incoming request
     const cookies = request.cookies
     const mhSid = cookies.get("mh_sid")?.value
@@ -24,6 +27,9 @@ export async function POST(request: NextRequest) {
 
     // Get the response data
     const data = await response.json()
+
+    console.log("[v0] Backend response status:", response.status)
+    console.log("[v0] Backend response data:", JSON.stringify(data).substring(0, 200))
 
     // Create the response
     const nextResponse = NextResponse.json(data, { status: response.status })

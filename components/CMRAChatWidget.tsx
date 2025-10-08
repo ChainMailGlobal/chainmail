@@ -34,15 +34,6 @@ async function postChat(message: string, user_id?: string, submission_id?: strin
   return await resp.json()
 }
 
-async function createAccount(email: string, fullName: string, caseId?: string) {
-  const r = await fetch("/api/auth/create-account", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ email, fullName, caseId }),
-  })
-  return await r.json()
-}
-
 export default function CMRAChatWidget() {
   const [isOpen, setIsOpen] = useState(false)
   const [turns, setTurns] = useState<Turn[]>([
@@ -52,8 +43,6 @@ export default function CMRAChatWidget() {
     },
   ])
   const [pending, setPending] = useState(false)
-  const [email, setEmail] = useState("")
-  const [fullName, setFullName] = useState("")
   const [lastReply, setLastReply] = useState<MCPReply | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -93,28 +82,6 @@ export default function CMRAChatWidget() {
       setTurns((t) => [...t, { from: "agent", text: `Error: ${e.message || "chat failed"}` }])
     } finally {
       setPending(false)
-    }
-  }
-
-  async function handleCreateAccount() {
-    if (!email || !fullName) {
-      setTurns((t) => [
-        ...t,
-        { from: "agent", text: "I need your full name and email to create your dashboard account." },
-      ])
-      return
-    }
-    const res = await createAccount(email, fullName, undefined)
-    if (res.success) {
-      setTurns((t) => [
-        ...t,
-        {
-          from: "agent",
-          text: "Account created. Check your email to verify and set your password, then log in to your dashboard.",
-        },
-      ])
-    } else {
-      setTurns((t) => [...t, { from: "agent", text: `Account error: ${res.error}` }])
     }
   }
 
@@ -174,25 +141,10 @@ export default function CMRAChatWidget() {
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              <input
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="Full name"
-                className="border rounded-lg px-2 py-2 text-sm"
-              />
-              <input
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email"
-                className="border rounded-lg px-2 py-2 text-sm"
-              />
-              <button
-                onClick={handleCreateAccount}
-                className="col-span-2 border rounded-lg px-3 py-2 text-sm hover:bg-gray-50"
-              >
-                Create dashboard account
-              </button>
+            <div className="text-center">
+              <a href="/login" className="text-xs text-indigo-600 hover:text-indigo-700">
+                Already have an account? Sign in
+              </a>
             </div>
 
             {!!hasAllCore.missing?.length && (
