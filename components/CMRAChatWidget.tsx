@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useRef, useState } from "react"
+import { useRef, useState } from "react"
 
 type AgentEvent =
   | { type: "MESSAGE"; role: "agent" | "system"; text: string }
@@ -46,14 +46,6 @@ export default function CMRAChatWidget() {
   const [lastReply, setLastReply] = useState<MCPReply | null>(null)
   const [lastError, setLastError] = useState<{ message: string; canRetry: boolean } | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-
-  const hasAllCore = useMemo(() => {
-    const flags = lastReply?.compliance?.flags || {}
-    const missing = lastReply?.compliance?.missingBlocks || []
-    // We require phone & email per 1583; email here, phone via agent prompt
-    const coreOK = !missing.length || missing.every((m) => m.toLowerCase().includes("optional"))
-    return { coreOK, missing, flags }
-  }, [lastReply])
 
   async function send() {
     if (!inputRef.current?.value) return
@@ -184,12 +176,6 @@ export default function CMRAChatWidget() {
                 Already have an account? Sign in
               </a>
             </div>
-
-            {!!hasAllCore.missing?.length && (
-              <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2">
-                Missing items (mail release blocked): {hasAllCore.missing.join(", ")}
-              </div>
-            )}
           </div>
         </div>
       )}
