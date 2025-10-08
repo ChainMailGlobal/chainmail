@@ -44,6 +44,7 @@ export default function CMRAChatWidget() {
   ])
   const [pending, setPending] = useState(false)
   const [lastReply, setLastReply] = useState<MCPReply | null>(null)
+  const [lastError, setLastError] = useState<{ message: string; canRetry: boolean } | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const hasAllCore = useMemo(() => {
@@ -60,11 +61,12 @@ export default function CMRAChatWidget() {
     setTurns((t) => [...t, { from: "user", text: msg }])
     inputRef.current.value = ""
     setPending(true)
+    setLastError(null)
+
     try {
       const data = await postChat(msg)
       setLastReply(data)
       const lines: Turn[] = [{ from: "agent", text: data.reply }]
-      // Render some notable events inline for now
       data.events?.forEach((ev) => {
         if (ev.type === "REQUEST_INPUT") {
           lines.push({ from: "agent", text: `Please provide: ${ev.label}` })
@@ -79,9 +81,36 @@ export default function CMRAChatWidget() {
       })
       setTurns((t) => [...t, ...lines])
     } catch (e: any) {
-      setTurns((t) => [...t, { from: "agent", text: `Error: ${e.message || "chat failed"}` }])
+      let errorMessage = "Unable to connect to chat service. Please try again."
+      const canRetry = true
+
+      try {
+        const errorText = e.message || ""
+        if (errorText.includes("mcp_unavailable") || errorText.includes("MCP returned 401")) {
+          errorMessage =
+            "The chat service is temporarily unavailable. Our team has been notified. Please try again in a moment."
+        } else if (errorText.includes("fetch failed") || errorText.includes("network")) {
+          errorMessage = "Network connection issue. Please check your internet and try again."
+        } else if (errorText.includes("500")) {
+          errorMessage = "Server error occurred. Please try again or contact support if this persists."
+        }
+      } catch {
+        // Use default error message
+      }
+
+      setLastError({ message: errorMessage, canRetry })
+      setTurns((t) => [...t, { from: "agent", text: `⚠️ ${errorMessage}` }])
     } finally {
       setPending(false)
+    }
+  }
+
+  async function retry() {
+    if (!lastError?.canRetry) return
+    const lastUserMessage = [...turns].reverse().find((t) => t.from === "user")
+    if (lastUserMessage && inputRef.current) {
+      inputRef.current.value = lastUserMessage.text
+      await send()
     }
   }
 
@@ -128,6 +157,15 @@ export default function CMRAChatWidget() {
           </div>
 
           <div className="p-4 border-t bg-white space-y-3">
+            {lastError?.canRetry && (
+              <button
+                onClick={retry}
+                className="w-full py-2 px-4 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg text-sm font-medium transition-colors"
+              >
+                Retry Last Message
+              </button>
+            )}
+
             <div className="flex gap-2">
               <input
                 ref={inputRef}
