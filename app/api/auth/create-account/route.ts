@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createServerClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/server"
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,11 +10,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Email and full name are required" }, { status: 400 })
     }
 
-    // Create Supabase admin client
-    const supabase = await createServerClient()
+    const supabase = await createAdminClient()
 
     if (!supabase) {
-      return NextResponse.json({ error: "Supabase not configured" }, { status: 500 })
+      return NextResponse.json({ error: "Supabase admin not configured" }, { status: 500 })
     }
 
     // Generate a temporary password (user will set their own via email)

@@ -30,6 +30,33 @@ export async function createServerClient() {
   })
 }
 
+export async function createAdminClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!supabaseUrl || !supabaseServiceRoleKey) {
+    console.warn("[v0] Supabase admin not configured. Admin operations are disabled.")
+    return null
+  }
+
+  const cookieStore = await cookies()
+
+  return createSupabaseServerClient(supabaseUrl, supabaseServiceRoleKey, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll()
+      },
+      setAll(cookiesToSet) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
+        } catch {
+          // Ignore cookie errors in Server Components
+        }
+      },
+    },
+  })
+}
+
 export async function createClient() {
   return createServerClient()
 }
