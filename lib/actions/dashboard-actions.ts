@@ -1,6 +1,7 @@
 "use server"
 
 import { createServerClient } from "@/lib/supabase/server"
+import { stripe } from "@/lib/stripe"
 
 export async function getUserDashboardData() {
   try {
@@ -21,6 +22,40 @@ export async function getUserDashboardData() {
 
     if (profileError) {
       console.error("[v0] Error fetching profile:", profileError)
+    }
+
+    let subscription = null
+    let hasActiveSubscription = false
+    let currentPlan = "Free"
+
+    if (user.email) {
+      try {
+        const customers = await stripe.customers.list({
+          email: user.email,
+          limit: 1,
+        })
+
+        if (customers.data.length > 0) {
+          const subscriptions = await stripe.subscriptions.list({
+            customer: customers.data[0].id,
+            status: "active",
+            limit: 1,
+          })
+
+          if (subscriptions.data.length > 0) {
+            subscription = subscriptions.data[0]
+            hasActiveSubscription = true
+            // Extract plan name from subscription metadata or price nickname
+            const priceId = subscription.items.data[0]?.price.id
+            if (priceId) {
+              const price = await stripe.prices.retrieve(priceId)
+              currentPlan = price.nickname || "Paid Plan"
+            }
+          }
+        }
+      } catch (stripeError) {
+        console.error("[v0] Error checking Stripe subscription:", stripeError)
+      }
     }
 
     // Fetch user's witness sessions with agent details
@@ -78,6 +113,11 @@ export async function getUserDashboardData() {
         inProgressSessions: inProgressSessions.length,
         scheduledSessions: scheduledSessions.length,
         complianceStatus,
+      },
+      subscription: {
+        hasActiveSubscription,
+        currentPlan,
+        stripeSubscription: subscription,
       },
     }
   } catch (error) {

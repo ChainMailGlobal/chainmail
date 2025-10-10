@@ -7,6 +7,7 @@ import { SessionManager } from "@/components/dashboard/session-manager"
 import { ComplianceTimeline } from "@/components/dashboard/compliance-timeline"
 import { NotificationsPanel } from "@/components/dashboard/notifications-panel"
 import { SupportResources } from "@/components/dashboard/support-resources"
+import { PlanSelector } from "@/components/dashboard/plan-selector"
 
 export default async function DashboardPage() {
   const data = await getUserDashboardData()
@@ -19,6 +20,20 @@ export default async function DashboardPage() {
     <DashboardLayout user={data.user}>
       <div className="space-y-6">
         <WelcomePanel user={data.user} stats={data.stats} />
+
+        {!data.subscription?.hasActiveSubscription && (
+          <PlanSelector
+            currentPlan={data.subscription?.currentPlan}
+            hasActiveSubscription={data.subscription?.hasActiveSubscription || false}
+          />
+        )}
+
+        {data.subscription?.hasActiveSubscription && (
+          <PlanSelector
+            currentPlan={data.subscription?.currentPlan}
+            hasActiveSubscription={data.subscription?.hasActiveSubscription}
+          />
+        )}
 
         <div className="grid gap-6 lg:grid-cols-2">
           <SessionManager sessions={data.sessions} />
