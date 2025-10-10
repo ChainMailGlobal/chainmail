@@ -3,7 +3,7 @@ import { createAdminClient } from "@/lib/supabase/server"
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, fullName, caseId } = await req.json()
+    const { email, fullName, password, caseId } = await req.json()
 
     // Validate input
     if (!email || !fullName) {
@@ -27,19 +27,21 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Generate a temporary password (user will set their own via email)
-    const tempPassword = Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12)
+    const userPassword = password || Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12)
+
+    const shouldAutoConfirm = !!password
 
     // Create user with email verification
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
-      password: tempPassword,
+      password: userPassword,
       options: {
         data: {
           full_name: fullName,
           case_id: caseId,
         },
         emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "https://mailboxhero.pro"}/dashboard`,
+        ...(shouldAutoConfirm && { emailRedirectTo: undefined }),
       },
     })
 
@@ -71,9 +73,13 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const message = shouldAutoConfirm
+      ? "Account created successfully! You can now sign in."
+      : "Account created. Please check email to verify and set password."
+
     return NextResponse.json({
       success: true,
-      message: "Account created. Please check email to verify and set password.",
+      message,
       userId: authData.user?.id,
     })
   } catch (error) {

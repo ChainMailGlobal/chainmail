@@ -1,9 +1,10 @@
 "use client"
 
-import { CheckCircle2, Clock, AlertCircle } from "lucide-react"
+import { CheckCircle2, Clock, AlertCircle, MessageSquare } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface WelcomePanelProps {
   user: {
@@ -55,8 +56,23 @@ export function WelcomePanel({ user, stats }: WelcomePanelProps) {
     }
   }
 
+  const isNewUser = stats.totalSessions === 0
+
   return (
     <Card className="dashboard-card">
+      {isNewUser && (
+        <Alert className="mb-6 border-cyan-200 bg-gradient-to-r from-cyan-50 to-blue-50">
+          <MessageSquare className="h-5 w-5 text-cyan-600" />
+          <AlertDescription className="ml-2">
+            <p className="font-semibold text-cyan-900">Welcome! Complete your CMRA registration</p>
+            <p className="mt-1 text-sm text-cyan-700">
+              Click the <strong>CMRAgent chat button</strong> in the bottom right corner to start your Form 1583 witness
+              verification process. Our AI agent will guide you through each step.
+            </p>
+          </AlertDescription>
+        </Alert>
+      )}
+
       <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Welcome back, {user.fullName}</h1>

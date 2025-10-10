@@ -4,8 +4,8 @@ import { Check } from "lucide-react"
 const plans = [
   {
     name: "Hero",
-    price: "$19",
-    period: "/month",
+    price: "Free",
+    period: "",
     description: "Zero to Hero journey starts here",
     features: [
       "Essential compliance features",
@@ -19,25 +19,27 @@ const plans = [
     gradient: "from-stone-500 to-stone-600",
     bgGradient: "from-white to-stone-50",
     borderColor: "border-stone-200",
+    checkoutUrl: "/checkout?plan=hero",
   },
   {
     name: "Hero+",
-    price: "$79",
+    price: "$49",
     period: "/month",
     description: "Enhanced workflow automation",
     features: [
       "Everything in Hero",
       "Enhanced workflow automation",
-      "Up to 200 users",
+      "Up to 100 users",
       "Advanced compliance suite",
       "Blockchain audit trails",
       "USPS-ready CRD submission",
       "Priority support",
     ],
-    popular: true,
+    popular: false,
     gradient: "from-cyan-500 to-blue-500",
     bgGradient: "from-cyan-50 to-cyan-100",
     borderColor: "border-cyan-400",
+    checkoutUrl: "/checkout?plan=hero-plus",
   },
   {
     name: "Pro",
@@ -47,27 +49,28 @@ const plans = [
     features: [
       "Everything in Hero+",
       "Multi-location management",
-      "Up to 1,000 users",
+      "Up to 500 clients",
       "Advanced compliance automation",
       "Custom compliance workflows",
       "Analytics dashboard",
       "Dedicated account manager",
     ],
-    popular: false,
+    popular: true,
     gradient: "from-purple-500 to-purple-600",
     bgGradient: "from-purple-50 to-purple-100",
     borderColor: "border-purple-200",
+    checkoutUrl: "/checkout?plan=pro",
   },
   {
-    name: "Pro-Ent",
+    name: "Pro+",
     price: "$299",
     period: "/month",
-    description: "Enterprise features with white-label options",
+    description: "Multi-location enterprise solution",
     features: [
       "Everything in Pro",
       "Enterprise features",
-      "White-label options",
-      "Unlimited users",
+      "Multi-location support",
+      "Up to 1,000 users",
       "Custom integrations",
       "24/7 dedicated support",
       "Advanced analytics",
@@ -77,6 +80,7 @@ const plans = [
     gradient: "from-orange-500 to-orange-600",
     bgGradient: "from-orange-50 to-orange-100",
     borderColor: "border-orange-200",
+    checkoutUrl: "/checkout?plan=pro-plus",
   },
 ]
 
@@ -97,40 +101,44 @@ export function PricingSection() {
           {plans.map((plan, index) => (
             <div
               key={index}
-              className={`pricing-card border-2 ${plan.borderColor} p-6 rounded-lg text-center bg-gradient-to-b ${plan.bgGradient} hover:from-${plan.bgGradient.split(" ")[1]} hover:to-white transition-all duration-300 relative overflow-hidden ${
-                plan.popular ? "transform hover:scale-105 shadow-lg hover:shadow-xl mt-4" : ""
+              className={`pricing-card border-2 ${plan.borderColor} rounded-lg bg-gradient-to-b ${plan.bgGradient} hover:from-${plan.bgGradient.split(" ")[1]} hover:to-white transition-all duration-300 relative overflow-visible flex flex-col ${
+                plan.popular ? "transform hover:scale-105 shadow-lg hover:shadow-xl" : ""
               }`}
             >
               {plan.popular && (
                 <>
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-xs font-bold px-4 py-2 rounded-full shadow-md z-20">
+                  <span className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-xs font-bold px-4 py-2 rounded-full shadow-md z-20">
                     MOST POPULAR
                   </span>
                   <div className="absolute top-0 right-0 w-20 h-20 bg-cyan-400/20 rounded-full -translate-y-10 translate-x-10"></div>
                 </>
               )}
 
-              <div className={`relative z-10 ${plan.popular ? "mt-8" : ""}`}>
+              <div className={`relative z-10 p-6 flex flex-col h-full ${plan.popular ? "pt-8" : ""}`}>
                 <div
                   className={`w-12 h-12 ${plan.popular ? "bg-gradient-to-r from-cyan-500 to-blue-500" : "bg-stone-500"} rounded-full flex items-center justify-center mx-auto mb-4`}
                 >
                   <Check className="w-6 h-6 text-white" />
                 </div>
 
-                <h4 className={`font-bold text-lg ${plan.popular ? "text-cyan-700" : "text-stone-700"}`}>
+                <h4 className={`font-bold text-lg ${plan.popular ? "text-cyan-700" : "text-stone-700"} text-center`}>
                   {plan.name}
                 </h4>
 
-                <p className="text-3xl font-extrabold my-2">
-                  {plan.price}
-                  <span className="font-normal text-base">/mo</span>
-                </p>
+                <div className="text-center h-24 flex items-center justify-center">
+                  <div className="flex items-center gap-1">
+                    <span className="text-5xl font-extrabold leading-none">{plan.price}</span>
+                    {plan.period && (
+                      <span className="text-base font-normal text-muted-foreground self-end pb-1">{plan.period}</span>
+                    )}
+                  </div>
+                </div>
 
-                <p className={`text-sm ${plan.popular ? "text-cyan-600" : "text-stone-600"} mb-6`}>
+                <p className={`text-sm ${plan.popular ? "text-cyan-600" : "text-stone-600"} mb-6 text-center`}>
                   {plan.description}
                 </p>
 
-                <ul className="space-y-3 mb-8 text-left">
+                <ul className="space-y-3 mb-8 text-left flex-grow">
                   {plan.features.map((feature, featureIndex) => (
                     <li key={featureIndex} className="flex items-start">
                       <div
@@ -147,13 +155,32 @@ export function PricingSection() {
                   className={`w-full py-3 text-base font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 bg-gradient-to-r ${plan.gradient} hover:shadow-lg text-white border-0`}
                   asChild
                 >
-                  <a href={plan.name === "Pro-Ent" ? "/contact" : "/demo-v31"}>
-                    {plan.name === "Pro-Ent" ? "Contact Sales" : "Get Started"}
-                  </a>
+                  <a href={plan.checkoutUrl}>Get Started</a>
                 </Button>
               </div>
             </div>
           ))}
+        </div>
+
+        <div className="max-w-3xl mx-auto mt-16">
+          <div className="relative overflow-hidden rounded-2xl border-2 border-gradient-to-r from-cyan-500 to-blue-500 bg-gradient-to-br from-cyan-50 via-blue-50 to-purple-50 p-8 shadow-xl">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-400/20 rounded-full -translate-y-16 translate-x-16"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-400/20 rounded-full translate-y-12 -translate-x-12"></div>
+
+            <div className="relative z-10 text-center">
+              <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">Need more than 1,000 users?</h3>
+              <p className="text-lg text-gray-700 mb-6">
+                Get custom enterprise pricing tailored to your organization's needs.
+              </p>
+              <Button
+                size="lg"
+                className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold px-8 py-6 text-lg rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                asChild
+              >
+                <a href="/contact">Contact Sales</a>
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     </section>

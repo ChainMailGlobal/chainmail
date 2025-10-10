@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 
 const AGENT_BACKEND_BASE = process.env.AGENT_BACKEND_BASE || "https://app.mailboxhero.pro"
+const MCP_API_KEY = process.env.MCP_API_KEY
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,6 +20,7 @@ export async function POST(request: NextRequest) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...(MCP_API_KEY ? { "x-mcp-api-key": MCP_API_KEY } : {}),
         // Forward the mh_sid cookie if it exists
         ...(mhSid ? { Cookie: `mh_sid=${mhSid}` } : {}),
       },
