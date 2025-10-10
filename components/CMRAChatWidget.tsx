@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useRef, useState, useEffect } from "react"
 
 type AgentEvent =
   | { type: "MESSAGE"; role: "agent" | "system"; text: string }
@@ -20,15 +20,21 @@ type MCPReply = {
   events: AgentEvent[]
   compliance: { allRequiredMet: boolean; missingBlocks: string[]; flags?: Record<string, boolean> }
   memory_id?: string
+  next?: string
 }
 
 type Turn = { from: "user" | "agent"; text: string }
 
-async function postChat(message: string, user_id?: string, submission_id?: string): Promise<MCPReply> {
+async function postChat(
+  message: string,
+  user_id?: string,
+  submission_id?: string,
+  session_id?: string,
+): Promise<MCPReply> {
   const resp = await fetch("/api/agent/chat", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ message, user_id, submission_id }),
+    body: JSON.stringify({ message, user_id, submission_id, session_id }),
   })
   if (!resp.ok) throw new Error(await resp.text())
   return await resp.json()
@@ -45,7 +51,67 @@ export default function CMRAChatWidget() {
   const [pending, setPending] = useState(false)
   const [lastReply, setLastReply] = useState<MCPReply | null>(null)
   const [lastError, setLastError] = useState<{ message: string; canRetry: boolean } | null>(null)
+  const [sessionId, setSessionId] = useState<string>("")
+  const [isListening, setIsListening] = useState(false)
+  const [recognition, setRecognition] = useState<any>(null)
+
   const inputRef = useRef<HTMLInputElement>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const stored = localStorage.getItem("cmra_session_id")
+    if (stored) {
+      setSessionId(stored)
+    } else {
+      const newId = `sess_${Date.now()}_${Math.random().toString(36).slice(2)}`
+      setSessionId(newId)
+      localStorage.setItem("cmra_session_id", newId)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && "webkitSpeechRecognition" in window) {
+      const SpeechRecognition = (window as any).webkitSpeechRecognition
+      const recognitionInstance = new SpeechRecognition()
+      recognitionInstance.continuous = false
+      recognitionInstance.interimResults = false
+      recognitionInstance.lang = "en-US"
+
+      recognitionInstance.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript
+        if (inputRef.current) {
+          inputRef.current.value = transcript
+        }
+        setIsListening(false)
+      }
+
+      recognitionInstance.onerror = () => {
+        setIsListening(false)
+      }
+
+      recognitionInstance.onend = () => {
+        setIsListening(false)
+      }
+
+      setRecognition(recognitionInstance)
+    }
+  }, [])
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [turns])
+
+  function toggleVoiceInput() {
+    if (!recognition) return
+
+    if (isListening) {
+      recognition.stop()
+      setIsListening(false)
+    } else {
+      recognition.start()
+      setIsListening(true)
+    }
+  }
 
   async function send() {
     if (!inputRef.current?.value) return
@@ -56,7 +122,7 @@ export default function CMRAChatWidget() {
     setLastError(null)
 
     try {
-      const data = await postChat(msg)
+      const data = await postChat(msg, undefined, undefined, sessionId)
       setLastReply(data)
       const lines: Turn[] = [{ from: "agent", text: data.reply }]
       data.events?.forEach((ev) => {
@@ -106,6 +172,8 @@ export default function CMRAChatWidget() {
     }
   }
 
+  const showWitnessCapture = lastReply?.next === "capture_signature"
+
   return (
     <>
       {!isOpen && (
@@ -140,13 +208,25 @@ export default function CMRAChatWidget() {
             {turns.map((t, i) => (
               <div key={i} className={t.from === "user" ? "text-right" : "text-left"}>
                 <span
-                  className={`inline-block px-3 py-2 rounded-xl text-sm ${t.from === "user" ? "bg-blue-600 text-white" : "bg-white border"}`}
+                  className={`inline-block px-3 py-2 rounded-xl text-sm whitespace-pre-wrap ${t.from === "user" ? "bg-blue-600 text-white" : "bg-white border"}`}
                 >
                   {t.text}
                 </span>
               </div>
             ))}
+            <div ref={messagesEndRef} />
           </div>
+
+          {showWitnessCapture && (
+            <div className="border-t bg-white p-4">
+              <div className="text-sm font-medium mb-2">Complete Witness Capture:</div>
+              <iframe
+                src={`https://app.mailboxhero.pro/witness?session_id=${sessionId}`}
+                className="w-full h-64 border rounded-lg"
+                title="Witness Capture"
+              />
+            </div>
+          )}
 
           <div className="p-4 border-t bg-white space-y-3">
             {lastError?.canRetry && (
@@ -166,6 +246,25 @@ export default function CMRAChatWidget() {
                 className="flex-1 border rounded-lg px-3 py-2 text-sm"
                 onKeyDown={(e) => e.key === "Enter" && send()}
               />
+              {recognition && (
+                <button
+                  onClick={toggleVoiceInput}
+                  disabled={pending}
+                  className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+                    isListening ? "bg-red-600 text-white animate-pulse" : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                  }`}
+                  title="Voice input"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+                    />
+                  </svg>
+                </button>
+              )}
               <button onClick={send} disabled={pending} className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm">
                 {pending ? "…" : "Send"}
               </button>
