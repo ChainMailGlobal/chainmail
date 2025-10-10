@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     const mhSid = cookies.get("mh_sid")?.value
 
     // Forward the request to the live backend
-    const response = await fetch(`${AGENT_BACKEND_BASE}/api/chat`, {
+    const response = await fetch(`${AGENT_BACKEND_BASE}/api/agent/chat`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
