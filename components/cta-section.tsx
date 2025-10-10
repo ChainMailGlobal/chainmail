@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button"
-import { ArrowRight, AlertCircle } from "lucide-react"
+import { ArrowRight, AlertCircle } from "@/lib/icons"
 
 export function CtaSection() {
   return (
