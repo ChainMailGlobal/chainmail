@@ -21,6 +21,7 @@ type MCPReply = {
   compliance: { allRequiredMet: boolean; missingBlocks: string[]; flags?: Record<string, boolean> }
   memory_id?: string
   next?: string
+  session_id?: string // Added session_id to MCPReply type
 }
 
 type Turn = { from: "user" | "agent"; text: string }
@@ -172,6 +173,14 @@ export default function CMRAChatWidget() {
     try {
       const data = await postChat(msg, undefined, undefined, sessionId)
       setLastReply(data)
+
+      if (data.session_id && data.session_id !== sessionId) {
+        setSessionId(data.session_id)
+        try {
+          localStorage.setItem("cmra_session_id", data.session_id)
+        } catch {}
+      }
+
       const lines: Turn[] = [{ from: "agent", text: data.reply }]
       data.events?.forEach((ev) => {
         if (ev.type === "REQUEST_INPUT") {

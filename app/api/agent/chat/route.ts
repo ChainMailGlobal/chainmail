@@ -5,15 +5,17 @@ const MCP_API_KEY = process.env.MCP_API_KEY
 
 export async function POST(request: NextRequest) {
   try {
-    // Get the request body
     const body = await request.json()
 
     console.log("[v0] Forwarding chat request to backend:", AGENT_BACKEND_BASE)
     console.log("[v0] Request body:", JSON.stringify(body).substring(0, 100))
 
-    // Get cookies from the incoming request
-    const cookies = request.cookies
-    const mhSid = cookies.get("mh_sid")?.value
+    const cookies = request.headers.get("cookie") || ""
+    const match = cookies.match(/(?:^|; )mcp_sess=([^;]+)/)
+    const cookieId = match?.[1]
+
+    const sessionId = body?.session_id || cookieId || `sess_${crypto.randomUUID()}`
+    const setCookie = sessionId !== cookieId
 
     // Forward the request to the live backend
     const response = await fetch(`${AGENT_BACKEND_BASE}/api/agent/chat`, {
@@ -21,10 +23,11 @@ export async function POST(request: NextRequest) {
       headers: {
         "Content-Type": "application/json",
         ...(MCP_API_KEY ? { "x-mcp-api-key": MCP_API_KEY } : {}),
-        // Forward the mh_sid cookie if it exists
-        ...(mhSid ? { Cookie: `mh_sid=${mhSid}` } : {}),
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify({
+        ...body,
+        session_id: sessionId,
+      }),
     })
 
     // Get the response data
@@ -33,13 +36,10 @@ export async function POST(request: NextRequest) {
     console.log("[v0] Backend response status:", response.status)
     console.log("[v0] Backend response data:", JSON.stringify(data).substring(0, 200))
 
-    // Create the response
     const nextResponse = NextResponse.json(data, { status: response.status })
 
-    // Forward any Set-Cookie headers from the backend (including mh_sid)
-    const setCookieHeader = response.headers.get("set-cookie")
-    if (setCookieHeader) {
-      nextResponse.headers.set("set-cookie", setCookieHeader)
+    if (setCookie) {
+      nextResponse.headers.append("Set-Cookie", `mcp_sess=${sessionId}; Path=/; SameSite=Lax; HttpOnly; Max-Age=86400`)
     }
 
     return nextResponse
