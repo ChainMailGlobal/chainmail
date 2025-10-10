@@ -3,8 +3,6 @@ import type { Metadata } from "next"
 import { Playfair_Display, Source_Sans_3 as Source_Sans_Pro } from "next/font/google"
 import "./globals.css"
 import CMRAChatWidget from "@/components/CMRAChatWidget"
-import { Analytics } from "@vercel/analytics/react"
-import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Suspense } from "react"
 
 const playfairDisplay = Playfair_Display({
@@ -40,8 +38,6 @@ export default function RootLayout({
           {children}
           <CMRAChatWidget />
         </Suspense>
-        <Analytics />
-        <SpeedInsights />
       </body>
     </html>
   )
