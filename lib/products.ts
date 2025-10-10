@@ -10,7 +10,8 @@ export const PRODUCTS: Product[] = [
   {
     id: "hero",
     name: "Hero Plan",
-    description: "Zero to Hero journey starts here - Essential compliance features for single location",
+    description:
+      "Zero to Hero journey starts here - Essential compliance features for single location (up to 10 users)",
     priceInCents: 0, // Free
   },
   {

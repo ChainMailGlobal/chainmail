@@ -10,7 +10,7 @@ const plans = [
     features: [
       "Essential compliance features",
       "Single location",
-      "Up to 50 users",
+      "Up to 10 users",
       "Basic CMRA compliance",
       "AI witness verification",
       "Email support",
