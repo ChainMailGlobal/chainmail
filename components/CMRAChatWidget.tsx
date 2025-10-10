@@ -57,6 +57,7 @@ export default function CMRAChatWidget() {
 
   const inputRef = useRef<HTMLInputElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const stored = localStorage.getItem("cmra_session_id")
@@ -100,6 +101,53 @@ export default function CMRAChatWidget() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [turns])
+
+  useEffect(() => {
+    // Focus input on mount
+    inputRef.current?.focus()
+
+    function focusInput() {
+      inputRef.current?.focus()
+    }
+
+    function onContainerClick(e: MouseEvent) {
+      const t = e.target as HTMLElement
+      const tag = (t?.tagName || "").toLowerCase()
+      if (tag !== "input" && tag !== "textarea" && t?.getAttribute("contenteditable") !== "true") {
+        focusInput()
+      }
+    }
+
+    function onKeyDown(e: KeyboardEvent) {
+      const active = document.activeElement as HTMLElement | null
+      const tag = (active?.tagName || "").toLowerCase()
+      const inField = tag === "input" || tag === "textarea" || active?.getAttribute("contenteditable") === "true"
+
+      if (!inField) {
+        const printable = e.key && e.key.length === 1 && !e.metaKey && !e.ctrlKey && !e.altKey
+        if (printable) {
+          focusInput()
+          try {
+            if (inputRef.current) {
+              inputRef.current.value += e.key
+            }
+          } catch {}
+          e.preventDefault()
+        } else if (e.key === "Backspace") {
+          focusInput()
+          e.preventDefault()
+        }
+      }
+    }
+
+    const node = containerRef.current
+    node?.addEventListener("click", onContainerClick)
+    window.addEventListener("keydown", onKeyDown)
+    return () => {
+      node?.removeEventListener("click", onContainerClick)
+      window.removeEventListener("keydown", onKeyDown)
+    }
+  }, [])
 
   function toggleVoiceInput() {
     if (!recognition) return
@@ -160,6 +208,7 @@ export default function CMRAChatWidget() {
       setTurns((t) => [...t, { from: "agent", text: `⚠️ ${errorMessage}` }])
     } finally {
       setPending(false)
+      inputRef.current?.focus()
     }
   }
 
@@ -194,7 +243,10 @@ export default function CMRAChatWidget() {
       )}
 
       {isOpen && (
-        <div className="fixed bottom-6 right-6 z-50 w-96 max-w-[94vw] md:w-[400px] md:h-[700px] h-[calc(100vh-3rem)] rounded-2xl shadow-2xl bg-white border border-gray-200 flex flex-col">
+        <div
+          ref={containerRef}
+          className="fixed bottom-6 right-6 z-50 w-96 max-w-[94vw] md:w-[400px] md:h-[700px] h-[calc(100vh-3rem)] rounded-2xl shadow-2xl bg-white border border-gray-200 flex flex-col"
+        >
           <div className="flex items-center justify-between p-4 border-b">
             <div className="font-semibold">CMRA Agent • MailboxHero Pro</div>
             <button onClick={() => setIsOpen(false)} className="text-gray-500 hover:text-gray-700 transition-colors">
