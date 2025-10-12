@@ -10,14 +10,15 @@ const features = [
   },
   {
     icon: Shield,
-    title: "Blockchain Audit Trails",
+    title: "Autonomous RPA Audits",
     description:
-      "Immutable compliance records with blockchain verification ensure audit-ready documentation and regulatory protection.",
+      "Robotic Process Automation continuously monitors compliance, generates audit reports, and maintains regulatory readiness without manual intervention.",
   },
   {
     icon: FileCheck,
-    title: "USPS-Ready Submission",
-    description: "Automated CRD submission and Form 1583 processing that meets all USPS DMM 508.1.8 requirements.",
+    title: "Auto-Upload to USPS CRD",
+    description:
+      "Autonomous system automatically submits Form 1583 and updates to USPS Customer Registration Database, ensuring real-time compliance.",
   },
   {
     icon: Zap,
@@ -33,10 +34,10 @@ export function FeaturesSection() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl font-heading font-bold text-foreground mb-4">
-            Compliance-First Mail Management
+            From Automation to Autonomous
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Everything you need to stay compliant with USPS regulations while focusing on your business
+            RPA-powered compliance that audits, monitors, and uploads to USPS CRD without human intervention
           </p>
         </div>
 
