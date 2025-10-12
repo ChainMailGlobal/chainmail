@@ -20,9 +20,13 @@ export function HeroSection() {
           <div className="container mx-auto px-6 flex flex-col lg:flex-row items-center gap-12 relative z-10">
             <div className="flex-1 text-center lg:text-left">
               <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-4">
-                From <span className="text-orange-400">Zero</span> Compliance Headaches
-                <br />
-                to <span className="text-cyan-400">Hero</span> Status in Your Industry.
+                <div>
+                  From <span className="text-orange-400">Zero</span> Compliance Headaches
+                </div>
+                <div>
+                  to <span className="text-cyan-400">HERO</span>
+                </div>
+                <div>in Your Industry</div>
               </h1>
 
               <p className="text-lg md:text-xl text-blue-200 mb-2">
