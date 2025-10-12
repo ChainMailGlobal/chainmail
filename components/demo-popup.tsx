@@ -1,6 +1,6 @@
 "use client"
 import { Button } from "@/components/ui/button"
-import { X } from "lucide-react"
+import { X } from "@/lib/icons"
 
 interface DemoPopupProps {
   isOpen: boolean
