@@ -1,6 +1,6 @@
 import { Header } from "@/components/header"
 import { HeroSection } from "@/components/hero-section"
-import { SevenBenefitsSection } from "@/components/seven-benefits-section"
+import { HowItWorksSection } from "@/components/how-it-works-section"
 import { CmraCrisisSection } from "@/components/cmra-crisis-section"
 import { CmraDefinitionSection } from "@/components/cmra-definition-section"
 import { FeaturesSection } from "@/components/features-section"
@@ -14,7 +14,7 @@ export default function HomePage() {
     <main className="min-h-screen">
       <Header />
       <HeroSection />
-      <SevenBenefitsSection />
+      <HowItWorksSection />
       <CmraCrisisSection />
       <CmraDefinitionSection />
       <FeaturesSection />

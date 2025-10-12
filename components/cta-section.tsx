@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button"
-import { ArrowRight, AlertCircle } from "@/lib/icons"
+import { AlertCircle } from "@/lib/icons"
 
 export function CtaSection() {
   return (
@@ -36,18 +36,6 @@ export function CtaSection() {
             <Button
               size="lg"
               className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 text-lg"
-              asChild
-            >
-              <a href="/cmragent">
-                Begin Experience
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </a>
-            </Button>
-
-            <Button
-              variant="outline"
-              size="lg"
-              className="px-8 py-3 text-lg border-primary text-primary hover:bg-primary/5 bg-transparent"
               asChild
             >
               <a href="/demo-v31">Schedule a Demo</a>

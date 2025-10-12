@@ -31,38 +31,29 @@ export function HeroSection() {
               <p className="text-md md:text-lg text-blue-300 mb-8">
                 USPS Compliance Automation Through AI Authorized Employees
               </p>
-
-              <div className="flex justify-center lg:justify-start items-center mb-12">
-                <Button
-                  size="lg"
-                  className="bg-cyan-500 hover:bg-cyan-400 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                  asChild
-                >
-                  <a href="/pdf-viewer">
-                    Meet your Mailbox Hero
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </a>
-                </Button>
-              </div>
             </div>
 
             <div className="flex-1 flex justify-center flex-col items-center">
-              <div className="relative">
+              <div className="relative w-full h-96 lg:h-[500px]">
                 <img
-                  src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Aug%208%2C%202025%2C%2006_21_45%20PM-PyMBtJyygIvQskbXvz75gDeeZBQq1p.png"
-                  alt="CMRAgent - Professional CMRA Compliance Solution"
-                  className="w-full h-96 lg:h-[500px] object-contain rounded-2xl shadow-2xl border-2 border-cyan-400/30"
+                  src="/neo-kyoto-storybook-cover.jpg"
+                  alt="MailboxHero PRO Storybook Cover"
+                  className="w-full h-full object-cover rounded-2xl shadow-2xl border-2 border-cyan-400/30"
                 />
-              </div>
 
-              <div className="mt-6">
-                <Button
-                  size="lg"
-                  className="bg-gradient-to-r from-purple-600 to-emerald-600 hover:from-purple-700 hover:to-emerald-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                  asChild
-                >
-                  <a href="/demo-v31">Experience v3.1 ✨</a>
-                </Button>
+                {/* Overlay Button */}
+                <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-2xl">
+                  <Button
+                    size="lg"
+                    className="bg-cyan-500 hover:bg-cyan-400 text-white font-bold py-4 px-10 rounded-lg shadow-2xl hover:shadow-cyan-500/50 transition-all duration-300 transform hover:scale-110"
+                    asChild
+                  >
+                    <a href="/pdf-viewer">
+                      Meet Your MailBox Hero PRO!
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </a>
+                  </Button>
+                </div>
               </div>
             </div>
           </div>

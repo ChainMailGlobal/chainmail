@@ -237,17 +237,13 @@ export default function CMRAChatWidget() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-50 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full px-6 py-3 shadow-lg flex items-center gap-2 transition-all hover:scale-105"
+          className="fixed bottom-6 right-6 z-50 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full p-3 shadow-lg flex items-center gap-2 transition-all hover:scale-105"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-            />
-          </svg>
-          <span className="font-medium">CMRAgent</span>
+          <img
+            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Aug%208%2C%202025%2C%2006_21_45%20PM-PyMBtJyygIvQskbXvz75gDeeZBQq1p.png"
+            alt="CMRAgent"
+            className="w-18 h-18 object-contain"
+          />
         </button>
       )}
 
