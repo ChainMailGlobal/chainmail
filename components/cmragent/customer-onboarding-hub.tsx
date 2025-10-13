@@ -60,7 +60,7 @@ export function CustomerOnboardingHub({
     {
       id: "v1" as const,
       name: "V1: Wet Ink Foundation",
-      description: "Traditional signatures with notary witness",
+      description: "Traditional signatures with witness verification",
       timeframe: "2-3 days",
       features: ["In-Person Kiosk Only", "Dual Camera Recording", "Physical Wet Ink Signature", "GPS Verification"],
       color: "blue",

@@ -281,6 +281,7 @@ export default function CMRAChatWidget() {
                 src={`https://app.mailboxhero.pro/witness?session_id=${sessionId}`}
                 className="w-full h-64 border rounded-lg"
                 title="Witness Capture"
+                allow="microphone; camera; display-capture"
               />
             </div>
           )}

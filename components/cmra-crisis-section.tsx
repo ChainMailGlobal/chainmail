@@ -41,7 +41,7 @@ export function CmraCrisisSection() {
             <Clock className="w-12 h-12 text-yellow-600 mb-4" />
             <h3 className="text-xl font-bold text-gray-900 mb-3">2-Week Paper Trail Nightmare</h3>
             <p className="text-gray-700">
-              Physical forms, in-person meetings, notary appointments, mailing delays, and manual filing create a 2-week
+              Physical forms, in-person meetings, witness scheduling, mailing delays, and manual filing create a 2-week
               compliance bottleneck that frustrates customers.
             </p>
           </div>
