@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { USPSIntegrationCard } from "./usps-integration-card"
 import {
   CheckCircle,
   Clock,
@@ -178,6 +179,9 @@ export function CMRAgentDashboard({ data }: CMRADashboardProps) {
       <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
         {activeTab === "dashboard" && (
           <div className="space-y-6 sm:space-y-8">
+            {/* USPS Integration Card */}
+            <USPSIntegrationCard orgId={data.agent.id} />
+
             {/* Key Metrics */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
               <Card className="hover:shadow-lg transition-shadow">
