@@ -139,12 +139,13 @@ export function LoginForm() {
 
           <div className="mt-6 text-center">
             <p className="text-sm text-slate-600">
-              Don't have an account?{" "}
-              <button
-                onClick={() => router.push("/signup-v31")}
-                className="text-blue-600 hover:text-blue-700 font-medium"
-              >
-                Sign up
+              Need an account? Start with our{" "}
+              <button onClick={() => router.push("/pricing")} className="text-blue-600 hover:text-blue-700 font-medium">
+                pricing plans
+              </button>{" "}
+              or try the{" "}
+              <button onClick={() => router.push("/")} className="text-blue-600 hover:text-blue-700 font-medium">
+                CMRAgent chat
               </button>
             </p>
           </div>

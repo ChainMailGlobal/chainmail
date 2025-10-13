@@ -66,7 +66,7 @@ export function SignupForm() {
         throw new Error(data.error || "Failed to create account")
       }
 
-      router.push("/login?message=Account created! Please check your email to verify your account.")
+      router.push("/login?message=Account created! Check your email and click the verification link to sign in.")
     } catch (err: any) {
       setError(err.message || "Failed to create account")
     } finally {
@@ -89,8 +89,8 @@ export function SignupForm() {
       <CardHeader>
         <CardTitle>Complete Registration</CardTitle>
         <CardDescription>
-          {sessionId ? "Your payment was successful! " : ""}
-          Set your password to access your dashboard
+          {sessionId ? "Payment successful! " : ""}
+          Create your password, then verify your email to access your dashboard
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -151,12 +151,15 @@ export function SignupForm() {
             {loading ? "Creating Account..." : "Create Account"}
           </Button>
 
-          <p className="text-sm text-center text-muted-foreground">
-            Already have an account?{" "}
-            <a href="/login" className="text-primary hover:underline">
-              Sign in
-            </a>
-          </p>
+          <div className="text-sm text-center text-muted-foreground space-y-2">
+            <p>After creating your account, check your email for a verification link from Supabase.</p>
+            <p>
+              Already verified?{" "}
+              <a href="/login" className="text-primary hover:underline">
+                Sign in here
+              </a>
+            </p>
+          </div>
         </form>
       </CardContent>
     </Card>

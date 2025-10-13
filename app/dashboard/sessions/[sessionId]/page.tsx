@@ -13,7 +13,7 @@ export default async function SessionDetailPageRoute({ params }: { params: { ses
   } = await supabase.auth.getUser()
 
   if (authError || !user) {
-    redirect("/signup-v31")
+    redirect("/login")
   }
 
   const { data: session, error } = await supabase
