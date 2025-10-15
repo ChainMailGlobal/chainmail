@@ -7,10 +7,10 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
-    const backendUrl = `${AGENT_BACKEND_BASE}/api/agent/chat`
+    const backendUrl = `${AGENT_BACKEND_BASE}/chat`
 
     console.log("[v0] Forwarding chat request to:", backendUrl)
-    console.log("[v0] Request body:", JSON.stringify(body).substring(0, 100))
+    console.log("[v0] Request body:", JSON.stringify(body))
 
     const cookies = request.headers.get("cookie") || ""
     const match = cookies.match(/(?:^|; )mcp_sess=([^;]+)/)
@@ -33,19 +33,26 @@ export async function POST(request: NextRequest) {
     })
 
     console.log("[v0] Backend response status:", response.status)
+    console.log("[v0] Backend response headers:", Object.fromEntries(response.headers.entries()))
 
     if (!response.ok) {
       const errorText = await response.text()
       console.error("[v0] Backend error response:", errorText)
+
       return NextResponse.json(
-        { error: `Backend returned ${response.status}: ${errorText || "No error message"}` },
+        {
+          error: `Backend returned ${response.status}`,
+          details: errorText || "No error message",
+          endpoint: backendUrl,
+          hint: response.status === 405 ? "Method not allowed - check if endpoint accepts POST" : undefined,
+        },
         { status: response.status },
       )
     }
 
     // Get the response data
     const data = await response.json()
-    console.log("[v0] Backend response data:", JSON.stringify(data).substring(0, 200))
+    console.log("[v0] Backend response data:", JSON.stringify(data))
 
     const nextResponse = NextResponse.json(data, { status: response.status })
 
@@ -57,7 +64,10 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("[v0] Agent chat proxy error:", error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to connect to chat agent" },
+      {
+        error: error instanceof Error ? error.message : "Failed to connect to chat agent",
+        stack: error instanceof Error ? error.stack : undefined,
+      },
       { status: 500 },
     )
   }
