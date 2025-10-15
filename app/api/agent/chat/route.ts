@@ -1,15 +1,14 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-const AGENT_BACKEND_BASE = process.env.AGENT_BACKEND_BASE || "https://app.mailboxhero.pro"
+const MCP_GATEWAY_URL =
+  process.env.MCP_GATEWAY_URL || "https://mcp-gateway-303378319285.us-central1.run.app/mcp/orchestrate"
 const MCP_API_KEY = process.env.MCP_API_KEY
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
-    const backendUrl = `${AGENT_BACKEND_BASE}/chat`
-
-    console.log("[v0] Forwarding chat request to:", backendUrl)
+    console.log("[v0] Forwarding chat request to:", MCP_GATEWAY_URL)
     console.log("[v0] Request body:", JSON.stringify(body))
 
     const cookies = request.headers.get("cookie") || ""
@@ -19,8 +18,7 @@ export async function POST(request: NextRequest) {
     const sessionId = body?.session_id || cookieId || `sess_${crypto.randomUUID()}`
     const setCookie = sessionId !== cookieId
 
-    // Forward the request to the live backend
-    const response = await fetch(backendUrl, {
+    const response = await fetch(MCP_GATEWAY_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -41,10 +39,15 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json(
         {
-          error: `Backend returned ${response.status}`,
+          error: `MCP Gateway returned ${response.status}`,
           details: errorText || "No error message",
-          endpoint: backendUrl,
-          hint: response.status === 405 ? "Method not allowed - check if endpoint accepts POST" : undefined,
+          endpoint: MCP_GATEWAY_URL,
+          hint:
+            response.status === 405
+              ? "Method not allowed - check if endpoint accepts POST"
+              : response.status === 404
+                ? "Endpoint not found - verify MCP_GATEWAY_URL is correct"
+                : undefined,
         },
         { status: response.status },
       )
