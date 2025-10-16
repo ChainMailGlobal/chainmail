@@ -1,13 +1,18 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase/server"
 
+export const dynamic = "force-dynamic"
+
 // GET /api/v3b/availability - Get available time slots
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const date = searchParams.get("date") || new Date().toISOString().split("T")[0]
 
-    const supabase = createServerClient()
+    const supabase = await createServerClient()
+    if (!supabase) {
+      return NextResponse.json({ error: "Database not available" }, { status: 503 })
+    }
 
     // Query database for agent availability on the specified date
     const { data: availabilitySlots, error } = await supabase

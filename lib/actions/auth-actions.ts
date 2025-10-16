@@ -5,12 +5,19 @@ import { createServerClient } from "@/lib/supabase/server"
 
 export async function signOut() {
   const supabase = await createServerClient()
+  if (!supabase) {
+    redirect("/login")
+    return
+  }
   await supabase.auth.signOut()
   redirect("/login")
 }
 
 export async function getCurrentUser() {
   const supabase = await createServerClient()
+  if (!supabase) {
+    return null
+  }
 
   const {
     data: { user },
@@ -26,6 +33,9 @@ export async function getCurrentUser() {
 
 export async function getUserRole() {
   const supabase = await createServerClient()
+  if (!supabase) {
+    return null
+  }
 
   const {
     data: { user },

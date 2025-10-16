@@ -7,6 +7,10 @@ export async function getUserDashboardData() {
   try {
     const supabase = await createServerClient()
 
+    if (!supabase) {
+      return { error: "Database not available" }
+    }
+
     // Get authenticated user
     const {
       data: { user },
@@ -129,6 +133,10 @@ export async function getUserDashboardData() {
 export async function getSessionDocuments(sessionId: string) {
   try {
     const supabase = await createServerClient()
+
+    if (!supabase) {
+      return { error: "Database not available" }
+    }
 
     const {
       data: { user },

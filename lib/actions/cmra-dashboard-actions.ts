@@ -6,6 +6,10 @@ export async function terminateClient(userId: string, reason: string) {
   try {
     const supabase = await createServerClient()
 
+    if (!supabase) {
+      return { error: "Database not available" }
+    }
+
     const {
       data: { user: currentUser },
       error: authError,
@@ -61,6 +65,10 @@ export async function terminateClient(userId: string, reason: string) {
 export async function getCMRADashboardData() {
   try {
     const supabase = await createServerClient()
+
+    if (!supabase) {
+      return { error: "Database not available" }
+    }
 
     const {
       data: { user },
@@ -245,6 +253,10 @@ export async function getCMRADashboardData() {
 export async function getCMRAAnalytics(agentId: string, timeRange: "week" | "month" | "year" = "month") {
   try {
     const supabase = await createServerClient()
+
+    if (!supabase) {
+      return { error: "Database not available" }
+    }
 
     // Calculate date range
     const now = new Date()
