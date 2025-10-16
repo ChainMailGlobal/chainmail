@@ -1,12 +1,13 @@
 "use client"
 
 import { useState } from "react"
+import { Shield, X } from "@/lib/icons"
 
 export default function CMRAChatWidget() {
   const [isOpen, setIsOpen] = useState(false)
 
   const openChat = () => {
-    window.open("https://app.mailboxhero.pro/chat", "_blank", "width=500,height=800,menubar=no,toolbar=no,location=no")
+    window.open("https://app.mailboxhero.pro/chat", "_blank", "width=600,height=800")
   }
 
   return (
@@ -14,49 +15,50 @@ export default function CMRAChatWidget() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-50 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full p-3 shadow-lg flex items-center gap-2 transition-all hover:scale-105"
+          className="fixed bottom-6 right-6 z-50 bg-gradient-to-br from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-full p-4 shadow-2xl transition-all hover:scale-110"
           aria-label="Open CMRAgent chat"
         >
-          <img
-            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Aug%208%2C%202025%2C%2006_21_45%20PM-PyMBtJyygIvQskbXvz75gDeeZBQq1p.png"
-            alt="CMRAgent"
-            className="w-18 h-18 object-contain"
-          />
+          <Shield className="w-7 h-7" />
         </button>
       )}
 
       {isOpen && (
-        <div className="fixed bottom-6 right-6 z-50 w-96 max-w-[94vw] rounded-2xl shadow-2xl bg-white border border-gray-200 flex flex-col overflow-hidden">
-          <div className="flex items-center justify-between p-4 border-b bg-white">
-            <div className="font-semibold">CMRA Agent • MailboxHero Pro</div>
+        <div className="fixed bottom-6 right-6 z-50 w-[400px] max-w-[94vw] rounded-2xl shadow-2xl bg-white border border-gray-200 overflow-hidden">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <h3 className="text-sm font-semibold text-gray-900">CMRA Agent • MailboxHero Pro</h3>
             <button
               onClick={() => setIsOpen(false)}
-              className="text-gray-500 hover:text-gray-700 transition-colors"
+              className="text-gray-400 hover:text-gray-600 transition-colors"
               aria-label="Close chat"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <X className="w-5 h-5" />
             </button>
           </div>
 
-          <div className="flex-1 flex flex-col items-center justify-center p-8 bg-gradient-to-br from-indigo-50 to-white">
-            <img
-              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Aug%208%2C%202025%2C%2006_21_45%20PM-PyMBtJyygIvQskbXvz75gDeeZBQq1p.png"
-              alt="CMRAgent"
-              className="w-24 h-24 object-contain mb-6"
-            />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2 text-center">Start Your Form 1583</h3>
-            <p className="text-gray-600 text-center mb-6 text-sm">
+          <div className="p-8 text-center">
+            <div className="relative inline-block mb-6">
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-lg">
+                <Shield className="w-10 h-10 text-white" />
+              </div>
+              <div className="absolute -top-1 -right-1 w-6 h-6 bg-blue-600 text-white text-xs font-bold rounded-full flex items-center justify-center border-2 border-white">
+                0
+              </div>
+            </div>
+
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">Start Your Form 1583</h2>
+
+            <p className="text-gray-600 text-sm leading-relaxed mb-8">
               Chat with our AI agent to complete your USPS Form 1583 in minutes with full witness verification.
             </p>
+
             <button
               onClick={openChat}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium transition-colors shadow-md hover:shadow-lg"
+              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-3.5 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl"
             >
               Open Chat Interface
             </button>
-            <p className="text-xs text-gray-500 mt-4 text-center">
+
+            <p className="text-xs text-gray-600 mt-4 font-medium">
               Opens in a new window with full voice, camera, and upload capabilities
             </p>
           </div>

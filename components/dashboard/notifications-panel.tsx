@@ -4,6 +4,7 @@ import { Bell, AlertCircle, CheckCircle2, Clock, FileText, Calendar } from "luci
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { useState } from "react"
 
 interface Session {
   id: string
@@ -19,6 +20,8 @@ interface NotificationsPanelProps {
 }
 
 export function NotificationsPanel({ sessions }: NotificationsPanelProps) {
+  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false)
+
   // Generate notifications based on session status
   const notifications = []
 
@@ -112,7 +115,7 @@ export function NotificationsPanel({ sessions }: NotificationsPanelProps) {
       title: "Quarterly Certification Due",
       message: "Your next quarterly certification is due in 45 days",
       action: "Schedule Now",
-      actionHref: "/demo-v31",
+      actionHref: "/schedule-demo",
       priority: "low",
     })
   }
@@ -151,51 +154,58 @@ export function NotificationsPanel({ sessions }: NotificationsPanelProps) {
   }
 
   return (
-    <Card className="dashboard-card">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-foreground">Notifications & Actions</h2>
-        {notifications.length > 0 && (
-          <Badge variant="outline" className="gap-1">
-            <Bell className="h-3 w-3" />
-            {notifications.length}
-          </Badge>
-        )}
-      </div>
+    <>
+      <Card className="dashboard-card">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-foreground">Notifications & Actions</h2>
+          {notifications.length > 0 && (
+            <Badge variant="outline" className="gap-1">
+              <Bell className="h-3 w-3" />
+              {notifications.length}
+            </Badge>
+          )}
+        </div>
 
-      <div className="mt-6 space-y-3">
-        {notifications.length > 0 ? (
-          notifications.map((notification) => (
-            <div key={notification.id} className={`rounded-lg border p-4 ${getNotificationStyle(notification.type)}`}>
-              <div className="flex items-start gap-3">
-                <notification.icon className={`h-5 w-5 shrink-0 ${getIconColor(notification.type)}`} />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-foreground">{notification.title}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{notification.message}</p>
-                  {notification.action && (
-                    <Button size="sm" variant="outline" className="mt-3 bg-transparent">
-                      {notification.action}
-                    </Button>
-                  )}
+        <div className="mt-6 space-y-3">
+          {notifications.length > 0 ? (
+            notifications.map((notification) => (
+              <div key={notification.id} className={`rounded-lg border p-4 ${getNotificationStyle(notification.type)}`}>
+                <div className="flex items-start gap-3">
+                  <notification.icon className={`h-5 w-5 shrink-0 ${getIconColor(notification.type)}`} />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-foreground">{notification.title}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{notification.message}</p>
+                    {notification.action && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="mt-3 bg-transparent"
+                        onClick={() => window.open(notification.actionHref, "_blank")}
+                      >
+                        {notification.action}
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
+            ))
+          ) : (
+            <div className="rounded-lg border border-dashed border-border p-8 text-center">
+              <Bell className="mx-auto h-12 w-12 text-muted-foreground" />
+              <p className="mt-2 text-sm font-medium text-foreground">No notifications</p>
+              <p className="mt-1 text-sm text-muted-foreground">You're all caught up!</p>
             </div>
-          ))
-        ) : (
-          <div className="rounded-lg border border-dashed border-border p-8 text-center">
-            <Bell className="mx-auto h-12 w-12 text-muted-foreground" />
-            <p className="mt-2 text-sm font-medium text-foreground">No notifications</p>
-            <p className="mt-1 text-sm text-muted-foreground">You're all caught up!</p>
+          )}
+        </div>
+
+        {notifications.length > 3 && (
+          <div className="mt-4 text-center">
+            <Button variant="ghost" size="sm">
+              View All Notifications
+            </Button>
           </div>
         )}
-      </div>
-
-      {notifications.length > 3 && (
-        <div className="mt-4 text-center">
-          <Button variant="ghost" size="sm">
-            View All Notifications
-          </Button>
-        </div>
-      )}
-    </Card>
+      </Card>
+    </>
   )
 }

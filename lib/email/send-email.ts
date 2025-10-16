@@ -5,6 +5,33 @@ import { getSessionConfirmationEmail, getSessionCompleteEmail, getSessionReminde
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
+export async function sendEmail(data: { to: string; subject: string; html: string; text?: string }) {
+  try {
+    console.log("[v0] Sending email to:", data.to)
+
+    if (resend) {
+      await resend.emails.send({
+        from: "MailboxHero Pro <noreply@mailboxhero.pro>",
+        to: data.to,
+        subject: data.subject,
+        html: data.html,
+        text: data.text,
+      })
+      console.log("[v0] Email sent successfully via Resend")
+    } else {
+      console.log("[v0] RESEND_API_KEY not configured. Email would be sent:", {
+        to: data.to,
+        subject: data.subject,
+      })
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error("[v0] Error sending email:", error)
+    return { success: false, error: "Failed to send email" }
+  }
+}
+
 export async function sendSessionConfirmationEmail(data: {
   to: string
   customerName: string

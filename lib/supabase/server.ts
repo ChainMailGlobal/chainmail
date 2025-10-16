@@ -1,4 +1,3 @@
-import { createServerClient as createSupabaseServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 
 export async function createServerClient() {
@@ -10,24 +9,31 @@ export async function createServerClient() {
     return null
   }
 
-  const cookieStore = await cookies()
+  try {
+    // Dynamic import to prevent blocking if package isn't available
+    const { createServerClient: createSupabaseServerClient } = require("@supabase/ssr")
+    const cookieStore = await cookies()
 
-  return createSupabaseServerClient(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      getAll() {
-        return cookieStore.getAll()
+    return createSupabaseServerClient(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
+          } catch {
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
+        },
       },
-      setAll(cookiesToSet) {
-        try {
-          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-        } catch {
-          // The `setAll` method was called from a Server Component.
-          // This can be ignored if you have middleware refreshing
-          // user sessions.
-        }
-      },
-    },
-  })
+    })
+  } catch (error) {
+    console.warn("[v0] Supabase package not available. Server auth features are disabled.")
+    return null
+  }
 }
 
 export async function createAdminClient() {
@@ -39,22 +45,29 @@ export async function createAdminClient() {
     return null
   }
 
-  const cookieStore = await cookies()
+  try {
+    // Dynamic import to prevent blocking if package isn't available
+    const { createServerClient: createSupabaseServerClient } = require("@supabase/ssr")
+    const cookieStore = await cookies()
 
-  return createSupabaseServerClient(supabaseUrl, supabaseServiceRoleKey, {
-    cookies: {
-      getAll() {
-        return cookieStore.getAll()
+    return createSupabaseServerClient(supabaseUrl, supabaseServiceRoleKey, {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
+          } catch {
+            // Ignore cookie errors in Server Components
+          }
+        },
       },
-      setAll(cookiesToSet) {
-        try {
-          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-        } catch {
-          // Ignore cookie errors in Server Components
-        }
-      },
-    },
-  })
+    })
+  } catch (error) {
+    console.warn("[v0] Supabase package not available. Admin operations are disabled.")
+    return null
+  }
 }
 
 export async function createClient() {

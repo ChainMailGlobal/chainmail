@@ -17,8 +17,8 @@ export function HeroSection() {
         </div>
 
         <div className="flex-1 flex items-center">
-          <div className="container mx-auto px-6 flex flex-col lg:flex-row items-center gap-12 relative z-10">
-            <div className="flex-1 text-center lg:text-left">
+          <div className="container mx-auto px-6 flex flex-col md:flex-row items-center gap-12 relative z-10">
+            <div className="flex-1 text-center md:text-left">
               <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-4">
                 <div>
                   From <span className="text-orange-400">Zero</span> Compliance Headaches
@@ -38,7 +38,7 @@ export function HeroSection() {
             </div>
 
             <div className="flex-1 flex justify-center flex-col items-center">
-              <div className="relative w-full h-96 lg:h-[500px]">
+              <div className="relative w-full h-96 md:h-[500px]">
                 <img
                   src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-08-27%20055429-KF5ibLzZ7Hfp8OWb2eUxcNCJMKgDKC.png"
                   alt="MailboxHero PRO Storybook Cover"

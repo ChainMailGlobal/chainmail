@@ -78,7 +78,7 @@ export function Header() {
             </div>
           </nav>
 
-          {/* Desktop CTA - Removed CMRAgent button */}
+          {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-3">
             {isAuthenticated ? (
               <>
