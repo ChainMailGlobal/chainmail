@@ -11,6 +11,7 @@ interface Message {
   text: string
   sender: "user" | "agent"
   timestamp: Date
+  isStreaming?: boolean
 }
 
 export default function CMRAChatWidget() {
@@ -22,8 +23,10 @@ export default function CMRAChatWidget() {
   const [isLoading, setIsLoading] = useState(false)
   const [hasExistingSession, setHasExistingSession] = useState(false)
   const [isLoadingHistory, setIsLoadingHistory] = useState(false)
+  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const eventSourceRef = useRef<EventSource | null>(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -46,6 +49,14 @@ export default function CMRAChatWidget() {
       localStorage.setItem("cmra_session_id", sessionId)
     }
   }, [sessionId])
+
+  useEffect(() => {
+    return () => {
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close()
+      }
+    }
+  }, [])
 
   const loadHistory = async () => {
     if (!sessionId) return
@@ -100,18 +111,116 @@ export default function CMRAChatWidget() {
     }
   }
 
-  const sendMessage = async () => {
-    if (!inputValue.trim() || isLoading) return
-
+  const sendMessageWithStreaming = async (messageText: string) => {
     const userMessage: Message = {
       id: Date.now().toString(),
-      text: inputValue,
+      text: messageText,
       sender: "user",
       timestamp: new Date(),
     }
 
     setMessages((prev) => [...prev, userMessage])
     setInputValue("")
+    setIsLoading(true)
+
+    // Create placeholder for streaming response
+    const streamingId = `streaming-${Date.now()}`
+    const streamingMessage: Message = {
+      id: streamingId,
+      text: "",
+      sender: "agent",
+      timestamp: new Date(),
+      isStreaming: true,
+    }
+    setMessages((prev) => [...prev, streamingMessage])
+    setStreamingMessageId(streamingId)
+
+    try {
+      // Try streaming first
+      const streamUrl = `/api/chat/stream?message=${encodeURIComponent(messageText)}&session_id=${sessionId || ""}`
+      const eventSource = new EventSource(streamUrl)
+      eventSourceRef.current = eventSource
+
+      let fullResponse = ""
+      let hasReceivedData = false
+
+      eventSource.addEventListener("token", (event) => {
+        hasReceivedData = true
+        const data = JSON.parse(event.data)
+        fullResponse += data.chunk
+
+        // Update the streaming message with accumulated text
+        setMessages((prev) => prev.map((msg) => (msg.id === streamingId ? { ...msg, text: fullResponse } : msg)))
+      })
+
+      eventSource.addEventListener("done", (event) => {
+        const data = JSON.parse(event.data)
+
+        // Update session_id if provided
+        if (data.session_id) {
+          setSessionId(data.session_id)
+        }
+
+        // Finalize the message
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === streamingId
+              ? { ...msg, text: fullResponse || data.reply || "I'm here to help!", isStreaming: false }
+              : msg,
+          ),
+        )
+
+        setStreamingMessageId(null)
+        setIsLoading(false)
+        eventSource.close()
+        eventSourceRef.current = null
+      })
+
+      eventSource.addEventListener("error", async (event) => {
+        console.error("[v0] Streaming error, falling back to JSON:", event)
+        eventSource.close()
+        eventSourceRef.current = null
+
+        // If we haven't received any data, fall back to JSON
+        if (!hasReceivedData) {
+          // Remove the streaming placeholder
+          setMessages((prev) => prev.filter((msg) => msg.id !== streamingId))
+          setStreamingMessageId(null)
+
+          // Fall back to regular JSON POST
+          await sendMessageJSON(messageText)
+        } else {
+          // If we got partial data, just finalize what we have
+          setMessages((prev) => prev.map((msg) => (msg.id === streamingId ? { ...msg, isStreaming: false } : msg)))
+          setStreamingMessageId(null)
+          setIsLoading(false)
+        }
+      })
+
+      // Timeout fallback after 30 seconds
+      setTimeout(() => {
+        if (eventSourceRef.current) {
+          console.log("[v0] Streaming timeout, falling back to JSON")
+          eventSource.close()
+          eventSourceRef.current = null
+
+          if (!hasReceivedData) {
+            setMessages((prev) => prev.filter((msg) => msg.id !== streamingId))
+            setStreamingMessageId(null)
+            sendMessageJSON(messageText)
+          }
+        }
+      }, 30000)
+    } catch (error) {
+      console.error("[v0] Streaming setup failed, falling back to JSON:", error)
+      // Remove streaming placeholder and fall back
+      setMessages((prev) => prev.filter((msg) => msg.id !== streamingId))
+      setStreamingMessageId(null)
+      await sendMessageJSON(messageText)
+    }
+  }
+
+  const sendMessageJSON = async (messageText: string) => {
     setIsLoading(true)
 
     try {
@@ -121,7 +230,7 @@ export default function CMRAChatWidget() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          message: inputValue,
+          message: messageText,
           session_id: sessionId,
         }),
       })
@@ -155,6 +264,15 @@ export default function CMRAChatWidget() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const sendMessage = async () => {
+    if (!inputValue.trim() || isLoading) return
+
+    const messageText = inputValue
+
+    // Try streaming first, will fall back to JSON if streaming fails
+    await sendMessageWithStreaming(messageText)
   }
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -270,6 +388,10 @@ export default function CMRAChatWidget() {
                 setIsOpen(false)
                 setIsChatStarted(false)
                 setMessages([])
+                if (eventSourceRef.current) {
+                  eventSourceRef.current.close()
+                  eventSourceRef.current = null
+                }
               }}
               className="text-gray-400 hover:text-gray-600 transition-colors p-1"
               aria-label="Close chat"
@@ -359,6 +481,22 @@ export default function CMRAChatWidget() {
                       }`}
                     >
                       <p className="text-sm leading-relaxed">{message.text}</p>
+                      {message.isStreaming && (
+                        <div className="flex gap-1 mt-2">
+                          <div
+                            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                            style={{ animationDelay: "0ms" }}
+                          ></div>
+                          <div
+                            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                            style={{ animationDelay: "150ms" }}
+                          ></div>
+                          <div
+                            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                            style={{ animationDelay: "300ms" }}
+                          ></div>
+                        </div>
+                      )}
                       <p className={`text-xs mt-1 ${message.sender === "user" ? "text-indigo-100" : "text-gray-400"}`}>
                         {message.timestamp.toLocaleTimeString([], {
                           hour: "2-digit",
@@ -368,7 +506,7 @@ export default function CMRAChatWidget() {
                     </div>
                   </div>
                 ))}
-                {isLoading && (
+                {isLoading && !streamingMessageId && (
                   <div className="flex justify-start">
                     <div className="bg-white text-gray-900 border border-gray-200 rounded-2xl px-4 py-2.5">
                       <div className="flex gap-1">
