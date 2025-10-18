@@ -13,13 +13,26 @@ const SYSTEM_PROMPT = `You are MailboxHero CMRA Agent helping users complete USP
 export async function POST(req: NextRequest) {
   try {
     console.log("[v0] Chat API called")
-    const { messages, context } = await req.json()
-    console.log("[v0] Received messages:", messages?.length)
+    const body = await req.json()
+    const { message, session_id, messages, context } = body
 
-    const formattedMessages = messages.map((m: any) => ({
-      role: m.from === "user" ? "user" : "assistant",
-      content: m.text,
-    }))
+    console.log("[v0] Received message:", message)
+    console.log("[v0] Session ID:", session_id)
+
+    let formattedMessages: Array<{ role: "user" | "assistant"; content: string }> = []
+
+    if (message) {
+      // Single message from widget
+      formattedMessages = [{ role: "user", content: message }]
+    } else if (messages && Array.isArray(messages)) {
+      // Array of messages
+      formattedMessages = messages.map((m: any) => ({
+        role: m.from === "user" ? "user" : "assistant",
+        content: m.text,
+      }))
+    } else {
+      throw new Error("No message or messages provided")
+    }
 
     const allMessages = [
       {
@@ -31,7 +44,7 @@ export async function POST(req: NextRequest) {
 
     console.log("[v0] Calling streamText with OpenAI gpt-4o")
 
-    const result = streamText({
+    const result = await streamText({
       model: openai("gpt-4o"),
       messages: allMessages,
       temperature: 0.7,
@@ -39,9 +52,21 @@ export async function POST(req: NextRequest) {
       abortSignal: req.signal,
     })
 
-    console.log("[v0] Streaming response started")
+    console.log("[v0] Getting full response text")
 
-    return result.toTextStreamResponse()
+    const fullText = await result.text
+
+    return new Response(
+      JSON.stringify({
+        reply: fullText,
+        session_id: session_id || `session_${Date.now()}`,
+        timestamp: new Date().toISOString(),
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      },
+    )
   } catch (error) {
     console.error("[v0] Chat API error:", error)
     return new Response(
