@@ -1,5 +1,7 @@
+import { createBrowserClient } from "@supabase/ssr"
+
 export function getSupabaseClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.next_public_supabse_url
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!supabaseUrl || !supabaseAnonKey) {
@@ -7,12 +9,5 @@ export function getSupabaseClient() {
     return null
   }
 
-  try {
-    // Dynamic import to prevent blocking if package isn't available
-    const { createBrowserClient } = require("@supabase/ssr")
-    return createBrowserClient(supabaseUrl, supabaseAnonKey)
-  } catch (error) {
-    console.warn("[v0] Supabase package not available. Auth features are disabled.")
-    return null
-  }
+  return createBrowserClient(supabaseUrl, supabaseAnonKey)
 }
