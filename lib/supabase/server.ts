@@ -1,9 +1,13 @@
-import { createServerClient as createSupabaseServerClient } from "@supabase/ssr"
+import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import { cookies } from "next/headers"
 
 export async function createServerClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.next_public_supabse_url
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const rawKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  const supabaseUrl = rawUrl && rawUrl.startsWith("http") ? rawUrl : "https://jvwfqjzwavmkyxwwwidd.supabase.co"
+
+  const supabaseAnonKey = rawKey && rawKey.length > 100 && !rawKey.startsWith("eyJ") ? null : rawKey
 
   if (!supabaseUrl || !supabaseAnonKey) {
     console.warn("[v0] Supabase not configured. Server auth features are disabled.")
@@ -12,7 +16,7 @@ export async function createServerClient() {
 
   const cookieStore = await cookies()
 
-  return createSupabaseServerClient(supabaseUrl, supabaseAnonKey, {
+  return createSupabaseClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {
         return cookieStore.getAll()
@@ -31,8 +35,13 @@ export async function createServerClient() {
 }
 
 export async function createAdminClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.next_public_supabse_url
-  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const rawServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  const supabaseUrl = rawUrl && rawUrl.startsWith("http") ? rawUrl : "https://jvwfqjzwavmkyxwwwidd.supabase.co"
+
+  const supabaseServiceRoleKey =
+    rawServiceKey && rawServiceKey.length > 100 && !rawServiceKey.startsWith("eyJ") ? null : rawServiceKey
 
   if (!supabaseUrl || !supabaseServiceRoleKey) {
     console.warn("[v0] Supabase admin not configured. Admin operations are disabled.")
@@ -41,7 +50,7 @@ export async function createAdminClient() {
 
   const cookieStore = await cookies()
 
-  return createSupabaseServerClient(supabaseUrl, supabaseServiceRoleKey, {
+  return createSupabaseClient(supabaseUrl, supabaseServiceRoleKey, {
     cookies: {
       getAll() {
         return cookieStore.getAll()
@@ -57,8 +66,5 @@ export async function createAdminClient() {
   })
 }
 
-export async function createClient() {
-  return createServerClient()
-}
-
+export const createClient = createServerClient
 export const getSupabaseServer = createServerClient
