@@ -3,8 +3,7 @@
 import type React from "react"
 
 import { useState, useRef, useEffect } from "react"
-import { Shield, X } from "@/lib/icons"
-import { Send, Mic, Video, Paperclip } from "lucide-react"
+import { Shield, X, Send, Mic, Video, Paperclip } from "@/lib/icons"
 
 interface Message {
   id: string
