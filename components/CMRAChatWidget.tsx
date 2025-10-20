@@ -5,6 +5,8 @@ import type React from "react"
 import { useState, useRef, useEffect } from "react"
 import { Shield, X, Send, Mic, Video, Paperclip } from "@/lib/icons"
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_AGENT_BACKEND_BASE || ""
+
 interface Message {
   id: string
   text: string
@@ -62,7 +64,7 @@ export default function CMRAChatWidget() {
 
     setIsLoadingHistory(true)
     try {
-      const response = await fetch(`/api/chat/history?session_id=${sessionId}`)
+      const response = await fetch(`${BACKEND_URL}/api/chat/history?session_id=${sessionId}`)
 
       const contentType = response.headers.get("content-type")
       if (!response.ok || !contentType?.includes("application/json")) {
@@ -138,8 +140,7 @@ export default function CMRAChatWidget() {
     setStreamingMessageId(streamingId)
 
     try {
-      // Try streaming first
-      const streamUrl = `/api/chat/stream?message=${encodeURIComponent(messageText)}&session_id=${sessionId || ""}`
+      const streamUrl = `${BACKEND_URL}/api/chat/stream?message=${encodeURIComponent(messageText)}&session_id=${sessionId || ""}`
       const eventSource = new EventSource(streamUrl)
       eventSourceRef.current = eventSource
 
@@ -226,7 +227,7 @@ export default function CMRAChatWidget() {
     setIsLoading(true)
 
     try {
-      const response = await fetch("/api/chat", {
+      const response = await fetch(`${BACKEND_URL}/api/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -287,7 +288,7 @@ export default function CMRAChatWidget() {
       const formData = new FormData()
       formData.append("file", file)
 
-      const response = await fetch("/api/upload", {
+      const response = await fetch(`${BACKEND_URL}/api/upload`, {
         method: "POST",
         body: formData,
       })
@@ -306,7 +307,7 @@ export default function CMRAChatWidget() {
       }
       setMessages((prev) => [...prev, fileMessage])
 
-      const fileInfoResponse = await fetch("/api/chat", {
+      const fileInfoResponse = await fetch(`${BACKEND_URL}/api/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
