@@ -1,18 +1,29 @@
 import { cookies } from "next/headers"
 
-let createSupabaseClient: any = null
+let supabaseModuleCache: any = null
+let importAttempted = false
 
-try {
-  // Try to import Supabase, but don't fail if it's not available
-  const supabaseModule = await import("@supabase/supabase-js")
-  createSupabaseClient = supabaseModule.createClient
-} catch (error) {
-  console.warn("[v0] Supabase package not available. Server auth features are disabled.")
+async function getSupabaseModule() {
+  if (importAttempted) {
+    return supabaseModuleCache
+  }
+
+  importAttempted = true
+
+  try {
+    const supabaseModule = await import("@supabase/supabase-js")
+    supabaseModuleCache = supabaseModule.createClient
+    return supabaseModuleCache
+  } catch (error) {
+    console.warn("[v0] Supabase package not available. Server auth features are disabled.")
+    return null
+  }
 }
 
 export async function createServerClient() {
-  // If Supabase package isn't available, return null
-  if (!createSupabaseClient) {
+  const createClient = await getSupabaseModule()
+
+  if (!createClient) {
     return null
   }
 
@@ -20,7 +31,6 @@ export async function createServerClient() {
   const rawKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   const supabaseUrl = rawUrl && rawUrl.startsWith("http") ? rawUrl : "https://jvwfqjzwavmkyxwwwidd.supabase.co"
-
   const supabaseAnonKey = rawKey && rawKey.length > 100 && !rawKey.startsWith("eyJ") ? null : rawKey
 
   if (!supabaseUrl || !supabaseAnonKey) {
@@ -30,7 +40,7 @@ export async function createServerClient() {
 
   const cookieStore = await cookies()
 
-  return createSupabaseClient(supabaseUrl, supabaseAnonKey, {
+  return createClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {
         return cookieStore.getAll()
@@ -39,9 +49,7 @@ export async function createServerClient() {
         try {
           cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
         } catch {
-          // The `setAll` method was called from a Server Component.
-          // This can be ignored if you have middleware refreshing
-          // user sessions.
+          // Ignore cookie errors in Server Components
         }
       },
     },
@@ -49,8 +57,9 @@ export async function createServerClient() {
 }
 
 export async function createAdminClient() {
-  // If Supabase package isn't available, return null
-  if (!createSupabaseClient) {
+  const createClient = await getSupabaseModule()
+
+  if (!createClient) {
     return null
   }
 
@@ -58,7 +67,6 @@ export async function createAdminClient() {
   const rawServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
   const supabaseUrl = rawUrl && rawUrl.startsWith("http") ? rawUrl : "https://jvwfqjzwavmkyxwwwidd.supabase.co"
-
   const supabaseServiceRoleKey =
     rawServiceKey && rawServiceKey.length > 100 && !rawServiceKey.startsWith("eyJ") ? null : rawServiceKey
 
@@ -69,7 +77,7 @@ export async function createAdminClient() {
 
   const cookieStore = await cookies()
 
-  return createSupabaseClient(supabaseUrl, supabaseServiceRoleKey, {
+  return createClient(supabaseUrl, supabaseServiceRoleKey, {
     cookies: {
       getAll() {
         return cookieStore.getAll()

@@ -13,7 +13,7 @@ export function Header() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const supabase = getSupabaseClient()
+      const supabase = await getSupabaseClient()
       if (!supabase) {
         console.log("[v0] Supabase not configured, skipping auth check")
         return
@@ -32,7 +32,7 @@ export function Header() {
   }, [])
 
   const handleLogout = async () => {
-    const supabase = getSupabaseClient()
+    const supabase = await getSupabaseClient()
     if (!supabase) return
 
     try {
