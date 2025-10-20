@@ -293,17 +293,28 @@ export default function CMRAChatWidget() {
   const handleCameraClick = () => {
     if (isLoading) return
 
-    // Trigger file input with camera capture
+    console.log("[v0] Camera button clicked")
+    console.log("[v0] BACKEND_URL for upload:", BACKEND_URL || "(empty - using relative URL)")
+
     const input = document.createElement("input")
     input.type = "file"
     input.accept = "image/*"
     input.capture = "environment" as any // Use rear camera on mobile
+
     input.onchange = async (e: any) => {
       const file = e.target?.files?.[0]
       if (file) {
+        console.log("[v0] Camera captured file:", file.name, file.type, file.size)
         await uploadFile(file)
+      } else {
+        console.log("[v0] No file selected from camera")
       }
     }
+
+    input.onerror = (error) => {
+      console.error("[v0] Camera input error:", error)
+    }
+
     input.click()
   }
 
@@ -311,19 +322,48 @@ export default function CMRAChatWidget() {
     setIsLoading(true)
 
     try {
+      const uploadUrl = `${BACKEND_URL}/api/upload`
+      console.log("[v0] Uploading file to:", uploadUrl)
+      console.log("[v0] File details:", {
+        name: file.name,
+        type: file.type,
+        size: file.size,
+      })
+
       const formData = new FormData()
       formData.append("file", file)
 
-      const response = await fetch(`${BACKEND_URL}/api/upload`, {
+      const response = await fetch(uploadUrl, {
         method: "POST",
         body: formData,
       })
 
+      console.log("[v0] Upload response status:", response.status)
+      console.log("[v0] Upload response content-type:", response.headers.get("content-type"))
+
+      const contentType = response.headers.get("content-type")
       if (!response.ok) {
-        throw new Error("Failed to upload file")
+        const errorText = await response.text()
+        console.error("[v0] Upload failed:", {
+          status: response.status,
+          contentType,
+          error: errorText.substring(0, 200),
+        })
+        throw new Error(`Upload failed with status ${response.status}`)
+      }
+
+      if (!contentType?.includes("application/json")) {
+        const responseText = await response.text()
+        console.error("[v0] Upload endpoint returned non-JSON:", {
+          status: response.status,
+          contentType,
+          preview: responseText.substring(0, 200),
+        })
+        throw new Error("Upload endpoint not available (returned HTML instead of JSON)")
       }
 
       const data = await response.json()
+      console.log("[v0] Upload successful:", data)
 
       const fileMessage: Message = {
         id: Date.now().toString(),
@@ -333,7 +373,10 @@ export default function CMRAChatWidget() {
       }
       setMessages((prev) => [...prev, fileMessage])
 
-      const fileInfoResponse = await fetch(`${BACKEND_URL}/api/chat`, {
+      const chatUrl = `${BACKEND_URL}/api/chat`
+      console.log("[v0] Sending file info to chat:", chatUrl)
+
+      const fileInfoResponse = await fetch(chatUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -359,12 +402,14 @@ export default function CMRAChatWidget() {
           timestamp: new Date(),
         }
         setMessages((prev) => [...prev, agentResponse])
+      } else {
+        console.error("[v0] Chat response failed:", fileInfoResponse.status)
       }
     } catch (error) {
       console.error("[v0] Error uploading file:", error)
       const errorMessage: Message = {
         id: Date.now().toString(),
-        text: "Sorry, I couldn't upload that file. Please try again.",
+        text: `Sorry, I couldn't upload that file. ${error instanceof Error ? error.message : "Please try again."}`,
         sender: "agent",
         timestamp: new Date(),
       }
