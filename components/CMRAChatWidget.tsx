@@ -1,9 +1,9 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useRef, useEffect } from "react"
-import { X, Send, Mic, Video, Paperclip, Shield } from "@/lib/icons"
+import { X, Send, Paperclip, Shield, Mic, Video } from "@/lib/icons"
+import VoiceRealtimeMini from "./VoiceRealtimeMini"
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_AGENT_BACKEND_BASE || ""
 
@@ -25,6 +25,9 @@ export default function CMRAChatWidget() {
   const [hasExistingSession, setHasExistingSession] = useState(false)
   const [isLoadingHistory, setIsLoadingHistory] = useState(false)
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null)
+  const [voiceOn, setVoiceOn] = useState(false)
+  const [showVoiceControls, setShowVoiceControls] = useState(false)
+  const speakRef = useRef<((text: string) => Promise<void>) | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const eventSourceRef = useRef<EventSource | null>(null)
@@ -256,10 +259,14 @@ export default function CMRAChatWidget() {
         timestamp: new Date(),
       }
       setMessages((prev) => [...prev, agentResponse])
+
+      if (voiceOn && speakRef.current && data.reply) {
+        await speakRef.current(data.reply)
+      }
     } catch (error) {
       console.error("[v0] Error sending message:", error)
       const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: Date.now().toString(),
         text: "Sorry, I encountered an error. Please try again.",
         sender: "agent",
         timestamp: new Date(),
@@ -279,10 +286,28 @@ export default function CMRAChatWidget() {
     await sendMessageWithStreaming(messageText)
   }
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
+  const handleVoiceToggle = () => {
+    setShowVoiceControls(!showVoiceControls)
+  }
 
+  const handleCameraClick = () => {
+    if (isLoading) return
+
+    // Trigger file input with camera capture
+    const input = document.createElement("input")
+    input.type = "file"
+    input.accept = "image/*"
+    input.capture = "environment" as any // Use rear camera on mobile
+    input.onchange = async (e: any) => {
+      const file = e.target?.files?.[0]
+      if (file) {
+        await uploadFile(file)
+      }
+    }
+    input.click()
+  }
+
+  const uploadFile = async (file: File) => {
     setIsLoading(true)
 
     try {
@@ -338,7 +363,7 @@ export default function CMRAChatWidget() {
     } catch (error) {
       console.error("[v0] Error uploading file:", error)
       const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: Date.now().toString(),
         text: "Sorry, I couldn't upload that file. Please try again.",
         sender: "agent",
         timestamp: new Date(),
@@ -346,15 +371,22 @@ export default function CMRAChatWidget() {
       setMessages((prev) => [...prev, errorMessage])
     } finally {
       setIsLoading(false)
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ""
-      }
     }
   }
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault()
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    await uploadFile(file)
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
       sendMessage()
     }
   }
@@ -392,6 +424,8 @@ export default function CMRAChatWidget() {
                 setIsOpen(false)
                 setIsChatStarted(false)
                 setMessages([])
+                setVoiceOn(false)
+                setShowVoiceControls(false)
                 if (eventSourceRef.current) {
                   eventSourceRef.current.close()
                   eventSourceRef.current = null
@@ -533,18 +567,49 @@ export default function CMRAChatWidget() {
                 <div ref={messagesEndRef} />
               </div>
 
+              {showVoiceControls && (
+                <div className="px-4 py-3 bg-indigo-50 border-t border-indigo-100">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-indigo-900">Voice Controls</span>
+                    <button
+                      onClick={() => setShowVoiceControls(false)}
+                      className="text-indigo-600 hover:text-indigo-800 text-xs"
+                    >
+                      Hide
+                    </button>
+                  </div>
+                  <VoiceRealtimeMini
+                    voicePreset="alloy"
+                    buttonLabel="Start Voice"
+                    stopLabel="Stop Voice"
+                    onReady={(api) => {
+                      speakRef.current = api.speak
+                      setVoiceOn(true)
+                    }}
+                  />
+                </div>
+              )}
+
               <div className="px-4 py-2 bg-white border-t border-gray-100">
                 <div className="flex gap-2 justify-center">
                   <button
-                    className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                    title="Voice input (requires /api/voice/token integration)"
+                    onClick={handleVoiceToggle}
+                    disabled={isLoading}
+                    className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                      showVoiceControls
+                        ? "text-indigo-600 bg-indigo-50"
+                        : "text-gray-600 hover:text-indigo-600 hover:bg-indigo-50"
+                    }`}
+                    title="Toggle voice controls"
                   >
                     <Mic className="w-4 h-4" />
                     <span className="text-xs">Voice</span>
                   </button>
                   <button
-                    className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                    title="Camera capture (requires implementation)"
+                    onClick={handleCameraClick}
+                    disabled={isLoading}
+                    className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Capture photo"
                   >
                     <Video className="w-4 h-4" />
                     <span className="text-xs">Camera</span>
