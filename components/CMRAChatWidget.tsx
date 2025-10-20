@@ -127,7 +127,6 @@ export default function CMRAChatWidget() {
     setInputValue("")
     setIsLoading(true)
 
-    // Create placeholder for streaming response
     const streamingId = `streaming-${Date.now()}`
     const streamingMessage: Message = {
       id: streamingId,
@@ -141,6 +140,8 @@ export default function CMRAChatWidget() {
 
     try {
       const streamUrl = `${BACKEND_URL}/api/chat/stream?message=${encodeURIComponent(messageText)}&session_id=${sessionId || ""}`
+      console.log("[v0] Attempting to connect to streaming endpoint:", streamUrl)
+
       const eventSource = new EventSource(streamUrl)
       eventSourceRef.current = eventSource
 
@@ -152,19 +153,16 @@ export default function CMRAChatWidget() {
         const data = JSON.parse(event.data)
         fullResponse += data.chunk
 
-        // Update the streaming message with accumulated text
         setMessages((prev) => prev.map((msg) => (msg.id === streamingId ? { ...msg, text: fullResponse } : msg)))
       })
 
       eventSource.addEventListener("done", (event) => {
         const data = JSON.parse(event.data)
 
-        // Update session_id if provided
         if (data.session_id) {
           setSessionId(data.session_id)
         }
 
-        // Finalize the message
         setMessages((prev) =>
           prev.map((msg) =>
             msg.id === streamingId
@@ -179,21 +177,25 @@ export default function CMRAChatWidget() {
         eventSourceRef.current = null
       })
 
-      eventSource.addEventListener("error", async (event) => {
-        console.error("[v0] Streaming error, falling back to JSON:", event)
+      eventSource.addEventListener("error", async (event: Event) => {
+        console.log("[v0] EventSource error event:", {
+          readyState: eventSource.readyState,
+          url: streamUrl,
+          hasReceivedData,
+        })
+
         eventSource.close()
         eventSourceRef.current = null
 
         // If we haven't received any data, fall back to JSON
         if (!hasReceivedData) {
-          // Remove the streaming placeholder
+          console.log("[v0] No data received from stream, falling back to JSON POST")
           setMessages((prev) => prev.filter((msg) => msg.id !== streamingId))
           setStreamingMessageId(null)
-
-          // Fall back to regular JSON POST
           await sendMessageJSON(messageText)
         } else {
           // If we got partial data, just finalize what we have
+          console.log("[v0] Partial data received, finalizing stream")
           setMessages((prev) => prev.map((msg) => (msg.id === streamingId ? { ...msg, isStreaming: false } : msg)))
           setStreamingMessageId(null)
           setIsLoading(false)
@@ -203,7 +205,7 @@ export default function CMRAChatWidget() {
       // Timeout fallback after 30 seconds
       setTimeout(() => {
         if (eventSourceRef.current) {
-          console.log("[v0] Streaming timeout, falling back to JSON")
+          console.log("[v0] Streaming timeout after 30s, falling back to JSON")
           eventSource.close()
           eventSourceRef.current = null
 
@@ -215,8 +217,7 @@ export default function CMRAChatWidget() {
         }
       }, 30000)
     } catch (error) {
-      console.error("[v0] Streaming setup failed, falling back to JSON:", error)
-      // Remove streaming placeholder and fall back
+      console.error("[v0] Streaming setup failed:", error)
       setMessages((prev) => prev.filter((msg) => msg.id !== streamingId))
       setStreamingMessageId(null)
       await sendMessageJSON(messageText)
