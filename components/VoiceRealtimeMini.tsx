@@ -21,9 +21,11 @@ export default function VoiceRealtimeMini({
   const activeRef = React.useRef(false)
   const [active, setActive] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
+  const [status, setStatus] = React.useState<string>("Ready")
 
   async function start() {
     setError(null)
+    setStatus("Initializing...")
     try {
       console.log("[v0] VoiceRealtimeMini - Starting voice session with preset:", voicePreset)
       console.log("[v0] VoiceRealtimeMini - Calling /api/voice/token endpoint")
@@ -31,30 +33,59 @@ export default function VoiceRealtimeMini({
       const pc = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] })
       pcRef.current = pc
 
+      pc.onconnectionstatechange = () => {
+        console.log("[v0] VoiceRealtimeMini - Connection state:", pc.connectionState)
+        setStatus(`Connection: ${pc.connectionState}`)
+      }
+
+      pc.oniceconnectionstatechange = () => {
+        console.log("[v0] VoiceRealtimeMini - ICE connection state:", pc.iceConnectionState)
+      }
+
       // Remote audio sink
       const remoteStream = new MediaStream()
       if (remoteAudioRef.current) {
         remoteAudioRef.current.srcObject = remoteStream
       }
       pc.ontrack = (e) => {
+        console.log("[v0] VoiceRealtimeMini - Received remote audio track")
         e.streams[0]?.getAudioTracks().forEach(() => {})
         e.streams.forEach((s) => s.getTracks().forEach((t) => remoteStream.addTrack(t)))
+        setStatus("Audio connected")
       }
 
       // Mic
+      setStatus("Requesting microphone...")
       console.log("[v0] VoiceRealtimeMini - Requesting microphone access...")
       const local = await navigator.mediaDevices.getUserMedia({ audio: true })
       localStreamRef.current = local
-      for (const track of local.getTracks()) pc.addTrack(track, local)
+      console.log("[v0] VoiceRealtimeMini - Microphone access granted, tracks:", local.getTracks().length)
+      for (const track of local.getTracks()) {
+        pc.addTrack(track, local)
+        console.log("[v0] VoiceRealtimeMini - Added local audio track:", track.label)
+      }
 
       // Data channel for sending speak events
       const dc = pc.createDataChannel("oai-events")
       dcRef.current = dc
 
+      dc.onopen = () => {
+        console.log("[v0] VoiceRealtimeMini - Data channel opened")
+        setStatus("Voice ready")
+      }
+      dc.onclose = () => {
+        console.log("[v0] VoiceRealtimeMini - Data channel closed")
+      }
+      dc.onerror = (e) => {
+        console.error("[v0] VoiceRealtimeMini - Data channel error:", e)
+      }
+
       // Create local offer
+      setStatus("Creating offer...")
       const offer = await pc.createOffer({ offerToReceiveAudio: true })
       await pc.setLocalDescription(offer)
 
+      setStatus("Getting voice token...")
       console.log("[v0] VoiceRealtimeMini - Requesting voice token from /api/voice/token...")
 
       // Get ephemeral client secret for gpt-realtime-mini
@@ -97,6 +128,7 @@ export default function VoiceRealtimeMini({
         throw new Error(message)
       }
 
+      setStatus("Connecting to OpenAI...")
       console.log("[v0] VoiceRealtimeMini - Connecting to OpenAI Realtime API...")
 
       // Send SDP to OpenAI Realtime, receive answer
@@ -109,9 +141,20 @@ export default function VoiceRealtimeMini({
         },
         body: offer.sdp || "",
       })
+
+      console.log("[v0] VoiceRealtimeMini - OpenAI response status:", r.status)
+
+      if (!r.ok) {
+        const errorText = await r.text()
+        console.error("[v0] VoiceRealtimeMini - OpenAI connection failed:", errorText)
+        throw new Error(`OpenAI Realtime connection failed (${r.status}): ${errorText}`)
+      }
+
       const answer = await r.text()
+      console.log("[v0] VoiceRealtimeMini - Received SDP answer from OpenAI")
       await pc.setRemoteDescription({ type: "answer", sdp: answer })
 
+      setStatus("Voice active")
       console.log("[v0] VoiceRealtimeMini - Voice session established successfully")
 
       activeRef.current = true
@@ -121,12 +164,20 @@ export default function VoiceRealtimeMini({
           speak: async (text: string) => {
             try {
               const chan = dcRef.current
-              if (!activeRef.current || !chan || chan.readyState !== "open") return
+              if (!activeRef.current || !chan || chan.readyState !== "open") {
+                console.warn("[v0] VoiceRealtimeMini - Cannot speak: channel not ready", {
+                  active: activeRef.current,
+                  hasChannel: !!chan,
+                  readyState: chan?.readyState,
+                })
+                return
+              }
+              console.log("[v0] VoiceRealtimeMini - Sending speak command:", text.substring(0, 50))
               const payload = { type: "response.create", response: { instructions: String(text || "") } }
               chan.send(JSON.stringify(payload))
               await remoteAudioRef.current?.play().catch(() => {})
             } catch (e) {
-              console.warn("voice speak failed", e)
+              console.warn("[v0] VoiceRealtimeMini - Speak failed:", e)
             }
           },
           stop: () => stop(),
@@ -134,11 +185,14 @@ export default function VoiceRealtimeMini({
         })
       }
       // Start playing remote audio (iOS/Safari may require a user gesture)
-      await remoteAudioRef.current?.play().catch(() => {})
+      await remoteAudioRef.current?.play().catch((e) => {
+        console.warn("[v0] VoiceRealtimeMini - Auto-play blocked (expected on some browsers):", e)
+      })
     } catch (e: any) {
       console.error("[v0] VoiceRealtimeMini - Error:", e)
       const errorMsg = e?.message || String(e)
       setError(errorMsg)
+      setStatus("Error")
       console.error("[v0] VoiceRealtimeMini - Full error details:", {
         message: errorMsg,
         stack: e?.stack,
@@ -148,6 +202,7 @@ export default function VoiceRealtimeMini({
   }
 
   function stop() {
+    console.log("[v0] VoiceRealtimeMini - Stopping voice session")
     try {
       pcRef.current?.getSenders().forEach((s) => s.track?.stop())
       pcRef.current?.close()
@@ -163,6 +218,7 @@ export default function VoiceRealtimeMini({
     localStreamRef.current = null
     activeRef.current = false
     setActive(false)
+    setStatus("Ready")
   }
 
   return (
@@ -171,6 +227,11 @@ export default function VoiceRealtimeMini({
       <div style={{ display: "flex", gap: 8 }}>
         {!active ? <button onClick={start}>{buttonLabel}</button> : <button onClick={stop}>{stopLabel}</button>}
       </div>
+      {active && !error && (
+        <div style={{ color: "#059669", fontSize: 12, padding: 8, backgroundColor: "#d1fae5", borderRadius: 4 }}>
+          Status: {status}
+        </div>
+      )}
       {error && (
         <div style={{ color: "#b91c1c", fontSize: 12, padding: 8, backgroundColor: "#fee2e2", borderRadius: 4 }}>
           <div style={{ fontWeight: 600, marginBottom: 4 }}>Voice Error:</div>
