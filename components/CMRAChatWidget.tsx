@@ -31,6 +31,7 @@ export default function CMRAChatWidget() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const eventSourceRef = useRef<EventSource | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -61,6 +62,15 @@ export default function CMRAChatWidget() {
       }
     }
   }, [])
+
+  useEffect(() => {
+    if (isOpen && isChatStarted) {
+      // Small delay to ensure DOM is ready
+      setTimeout(() => {
+        inputRef.current?.focus()
+      }, 100)
+    }
+  }, [isOpen, isChatStarted])
 
   const loadHistory = async () => {
     if (!sessionId) return
@@ -681,6 +691,7 @@ export default function CMRAChatWidget() {
               <div className="p-4 bg-white border-t border-gray-200">
                 <div className="flex gap-2">
                   <input
+                    ref={inputRef}
                     type="text"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}

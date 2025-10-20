@@ -25,6 +25,8 @@ export default function VoiceRealtimeMini({
   async function start() {
     setError(null)
     try {
+      console.log("[v0] VoiceRealtimeMini - Starting voice session with preset:", voicePreset)
+
       const pc = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] })
       pcRef.current = pc
 
@@ -39,6 +41,7 @@ export default function VoiceRealtimeMini({
       }
 
       // Mic
+      console.log("[v0] VoiceRealtimeMini - Requesting microphone access...")
       const local = await navigator.mediaDevices.getUserMedia({ audio: true })
       localStreamRef.current = local
       for (const track of local.getTracks()) pc.addTrack(track, local)
@@ -51,18 +54,26 @@ export default function VoiceRealtimeMini({
       const offer = await pc.createOffer({ offerToReceiveAudio: true })
       await pc.setLocalDescription(offer)
 
+      console.log("[v0] VoiceRealtimeMini - Requesting voice token from /api/voice/token...")
+
       // Get ephemeral client secret for gpt-realtime-mini
       const tokenResp = await fetch("/api/voice/token", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ voice: voicePreset }),
       })
+
+      console.log("[v0] VoiceRealtimeMini - Token response status:", tokenResp.status)
+      console.log("[v0] VoiceRealtimeMini - Token response content-type:", tokenResp.headers.get("content-type"))
+
       const tokenText = await tokenResp.text().catch(() => "")
       let tokenPayload: any = null
       if (tokenText) {
         try {
           tokenPayload = JSON.parse(tokenText)
+          console.log("[v0] VoiceRealtimeMini - Token payload received:", tokenPayload)
         } catch {
+          console.error("[v0] VoiceRealtimeMini - Failed to parse token response:", tokenText.substring(0, 200))
           tokenPayload = { detail: tokenText }
         }
       }
@@ -78,6 +89,8 @@ export default function VoiceRealtimeMini({
         throw new Error(message)
       }
 
+      console.log("[v0] VoiceRealtimeMini - Connecting to OpenAI Realtime API...")
+
       // Send SDP to OpenAI Realtime, receive answer
       const r = await fetch("https://api.openai.com/v1/realtime?model=gpt-realtime-mini", {
         method: "POST",
@@ -90,6 +103,8 @@ export default function VoiceRealtimeMini({
       })
       const answer = await r.text()
       await pc.setRemoteDescription({ type: "answer", sdp: answer })
+
+      console.log("[v0] VoiceRealtimeMini - Voice session established successfully")
 
       activeRef.current = true
       setActive(true)
@@ -113,6 +128,7 @@ export default function VoiceRealtimeMini({
       // Start playing remote audio (iOS/Safari may require a user gesture)
       await remoteAudioRef.current?.play().catch(() => {})
     } catch (e: any) {
+      console.error("[v0] VoiceRealtimeMini - Error:", e)
       setError(e?.message || String(e))
       stop()
     }
