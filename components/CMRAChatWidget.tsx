@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useRef, useEffect } from "react"
-import { Shield, X, Send, Mic, Video, Paperclip } from "@/lib/icons"
+import { X, Send, Mic, Video, Paperclip, Shield } from "@/lib/icons"
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_AGENT_BACKEND_BASE || ""
 
@@ -365,7 +365,7 @@ export default function CMRAChatWidget() {
         <button
           onClick={() => setIsOpen(true)}
           className="fixed bottom-6 right-6 z-[9999] bg-gradient-to-br from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-full p-5 shadow-2xl transition-all hover:scale-110 active:scale-95"
-          aria-label="Open CMRAgent chat"
+          aria-label="Open CMRAi chat"
         >
           <Shield className="w-8 h-8" />
         </button>
@@ -377,13 +377,13 @@ export default function CMRAChatWidget() {
           <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
             <div className="flex items-center gap-3">
               <div className="relative">
-                <div className="w-10 h-10 sm:w-20 sm:h-20 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-md">
-                  <Shield className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-md">
+                  <Shield className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
                 </div>
                 <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white"></div>
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-gray-900">CMRA Agent</h3>
+                <h3 className="text-sm font-semibold text-gray-900">CMRAi</h3>
                 <p className="text-xs text-gray-500">Online</p>
               </div>
             </div>
@@ -407,8 +407,8 @@ export default function CMRAChatWidget() {
           {!isChatStarted ? (
             <div className="p-6 sm:p-8 text-center flex-1 flex flex-col justify-center">
               <div className="relative inline-block mb-4 sm:mb-6 mx-auto">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-lg">
-                  <Shield className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg">
+                  <Shield className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
                 </div>
                 <div className="absolute -top-1 -right-1 w-6 h-6 bg-blue-600 text-white text-xs font-bold rounded-full flex items-center justify-center border-2 border-white">
                   0

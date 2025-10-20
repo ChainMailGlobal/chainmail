@@ -18,7 +18,7 @@ import {
   Phone,
 } from "lucide-react"
 
-type DemoVersion = "v1" | "v2" | "v3" | "cmragent" | null
+type DemoVersion = "v1" | "v2" | "v3" | "cmrai" | null
 type DemoStep = "intro" | "onboarding" | "version-select" | "flow" | "complete"
 
 export default function MailboxHeroDemo() {
@@ -72,8 +72,8 @@ export default function MailboxHeroDemo() {
       gradient: "from-emerald-500 to-emerald-600",
     },
     {
-      id: "cmragent" as const,
-      name: "CMRAgent: CMRA Operations",
+      id: "cmrai" as const,
+      name: "CMRAi: CMRA Operations",
       description: "Complete CMRA onboarding and operational dashboard for CRD equivalent operations",
       features: ["Form 1583-A Onboarding", "Witness Scheduling", "Client Management", "Audit & Compliance"],
       badge: "CMRA Ops",
@@ -97,7 +97,7 @@ export default function MailboxHeroDemo() {
 
   const handleVersionSelect = (version: DemoVersion) => {
     setSelectedVersion(version)
-    if (version === "cmragent") {
+    if (version === "cmrai") {
       setCurrentStep("flow")
     } else {
       setCurrentStep("flow")
@@ -448,7 +448,7 @@ export default function MailboxHeroDemo() {
     const steps = [
       {
         title: "AI Witness Activation",
-        description: "CMRAAgent AI witness system initiates compliance verification",
+        description: "CMRAi AI witness system initiates compliance verification",
         visual: "/futuristic-ai-interface-with-biometric-scanning-a.png",
         detail: "AI Witness v3.1 activated - Processing Form 1583 compliance verification",
       },
@@ -619,7 +619,7 @@ export default function MailboxHeroDemo() {
       return (
         <Card className="shadow-xl border-0">
           <CardHeader className="bg-gradient-to-r from-orange-50 to-orange-100">
-            <CardTitle className="text-2xl">CMRAgent: CMRA Onboarding</CardTitle>
+            <CardTitle className="text-2xl">CMRAi: CMRA Onboarding</CardTitle>
             <CardDescription>Complete CMRA onboarding with Form 1583-A and postal verification</CardDescription>
             {!platformAccess && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-4">
@@ -704,7 +704,7 @@ export default function MailboxHeroDemo() {
     return (
       <Card className="shadow-xl border-0">
         <CardHeader className="bg-gradient-to-r from-orange-50 to-orange-100">
-          <CardTitle className="text-2xl">CMRAgent: Operations Dashboard</CardTitle>
+          <CardTitle className="text-2xl">CMRAi: Operations Dashboard</CardTitle>
           <CardDescription>CRD equivalent operations for complete CMRA management</CardDescription>
           <div className="bg-green-50 border border-green-200 rounded-lg p-3 mt-4">
             <p className="text-sm text-green-700 font-medium">
@@ -867,7 +867,7 @@ export default function MailboxHeroDemo() {
 
           <div className="mt-8 text-center">
             <Button onClick={onComplete} className="bg-orange-600 hover:bg-orange-700 text-white px-8">
-              Complete CMRAgent Demo
+              Complete CMRAi Demo
             </Button>
           </div>
         </CardContent>
@@ -958,7 +958,7 @@ export default function MailboxHeroDemo() {
           <div className="mb-16 px-4">
             <Card
               className="relative overflow-hidden hover:shadow-xl transition-all duration-300 border-0 shadow-lg cursor-pointer group"
-              onClick={() => handleVersionSelect("cmragent")}
+              onClick={() => handleVersionSelect("cmrai")}
             >
               <div className={`absolute top-0 left-0 right-0 h-2 bg-gradient-to-r ${versions[3].gradient}`} />
               <CardHeader className="pb-4">
@@ -987,7 +987,7 @@ export default function MailboxHeroDemo() {
                     className={`bg-gradient-to-r ${versions[3].gradient} hover:opacity-90 text-white px-8 py-3`}
                     onClick={(e) => {
                       e.stopPropagation()
-                      handleVersionSelect("cmragent")
+                      handleVersionSelect("cmrai")
                     }}
                   >
                     Start CMRA Operations Demo
@@ -1101,7 +1101,7 @@ export default function MailboxHeroDemo() {
           {selectedVersion === "v1" && <V1WetInkFlow onComplete={handleFlowComplete} />}
           {selectedVersion === "v2" && <V2HybridFlow onComplete={handleFlowComplete} />}
           {selectedVersion === "v3" && <V3AIWitnessFlow onComplete={handleFlowComplete} />}
-          {selectedVersion === "cmragent" && <CMRAgentFlow onComplete={handleFlowComplete} />}
+          {selectedVersion === "cmrai" && <CMRAgentFlow onComplete={handleFlowComplete} />}
         </div>
       </div>
     )

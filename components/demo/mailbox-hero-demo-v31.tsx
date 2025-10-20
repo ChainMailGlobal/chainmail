@@ -20,7 +20,7 @@ import {
   ArrowLeft,
 } from "lucide-react"
 
-type DemoVersion = "v1" | "v2" | "v3" | "cmragent" | null
+type DemoVersion = "v1" | "v2" | "v3" | "cmrai" | null
 type DemoStep = "intro" | "onboarding" | "version-select" | "flow" | "complete"
 type OnboardingStep = "id-capture" | "address-verify" | "form-prefill" | "biometric-confirm"
 type FlowStep = number
@@ -115,8 +115,8 @@ export default function MailboxHeroDemoV31() {
       theme: "emerald",
     },
     {
-      id: "cmragent" as const,
-      name: "CMRAgent: CMRA Operations",
+      id: "cmrai" as const,
+      name: "CMRAi: CMRA Operations",
       description: "Complete CMRA management platform with Form 1583-A onboarding",
       features: [
         "CMRA Form 1583-A onboarding",
@@ -212,7 +212,7 @@ export default function MailboxHeroDemoV31() {
                     <Badge className="bg-red-100 text-red-800 border-red-300">Verification Required</Badge>
                     <div className="text-2xl font-bold text-slate-400">04</div>
                   </div>
-                  <h3 className="text-xl font-bold mb-2">CMRAgent: CMRA Operations</h3>
+                  <h3 className="text-xl font-bold mb-2">CMRAi: CMRA Operations</h3>
                   <p className="text-base text-slate-600 mb-4">
                     Complete CMRA management platform with Form 1583-A onboarding
                   </p>
@@ -462,7 +462,7 @@ export default function MailboxHeroDemoV31() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4">
         <div className="max-w-7xl mx-auto py-8">
           <div className="mb-8">
-            <h2 className="text-3xl font-bold text-slate-900 mb-2">CMRAgent Operations Dashboard</h2>
+            <h2 className="text-3xl font-bold text-slate-900 mb-2">CMRAi Operations Dashboard</h2>
             <p className="text-slate-600">Complete CMRA management and compliance platform</p>
           </div>
 
@@ -660,7 +660,7 @@ export default function MailboxHeroDemoV31() {
       },
       {
         title: "Platform Access Granted",
-        description: "Full CMRAgent dashboard and operations access",
+        description: "Full CMRAi dashboard and operations access",
         icon: Shield,
         visual: "/compliance-verification-dashboard-with-green.png",
       },
@@ -676,7 +676,7 @@ export default function MailboxHeroDemoV31() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4">
         <div className="max-w-4xl mx-auto py-12">
           <div className="text-center mb-8">
-            <h2 className="text-4xl font-bold text-slate-900 mb-4">CMRAgent: CMRA Operations Platform</h2>
+            <h2 className="text-4xl font-bold text-slate-900 mb-4">CMRAi: CMRA Operations Platform</h2>
             <p className="text-lg text-slate-700">Complete management platform for CMRA operators</p>
             <Badge className="bg-red-100 text-red-800 border-red-300 mt-2">Platform Access Pending Verification</Badge>
           </div>
@@ -758,7 +758,7 @@ export default function MailboxHeroDemoV31() {
                 <div className="bg-green-50 p-6 rounded-lg border border-green-200">
                   <h4 className="font-semibold text-green-900 mb-3">✅ Platform Access Granted</h4>
                   <div className="space-y-2 text-green-800">
-                    <div>• Full CMRAgent dashboard access</div>
+                    <div>• Full CMRAi dashboard access</div>
                     <div>• Client management tools</div>
                     <div>• Compliance audit features</div>
                     <div>• Witness scheduling calendar</div>
@@ -865,7 +865,7 @@ export default function MailboxHeroDemoV31() {
                       </Badge>
                       <Badge className="bg-red-100 text-red-800 border-red-300">Verification Required</Badge>
                     </div>
-                    <h3 className="text-2xl font-bold mb-2">CMRAgent: CMRA Operations Platform</h3>
+                    <h3 className="text-2xl font-bold mb-2">CMRAi: CMRA Operations Platform</h3>
                     <p className="text-slate-600 mb-4">Complete CMRA management platform with Form 1583-A onboarding</p>
                     <div className="grid md:grid-cols-4 gap-4">
                       {versions[3].features.map((feature, index) => (
@@ -884,7 +884,7 @@ export default function MailboxHeroDemoV31() {
                           e.stopPropagation()
                         }}
                       >
-                        Access CMRAgent
+                        Access CMRAi
                       </Button>
                     </a>
                   </div>
@@ -1480,7 +1480,7 @@ export default function MailboxHeroDemoV31() {
         {currentStep === "flow" && selectedVersion === "v1" && <V1WetInkFlow />}
         {currentStep === "flow" && selectedVersion === "v2" && <V2HybridFlow />}
         {currentStep === "flow" && selectedVersion === "v3" && <V3AIWitnessFlow />}
-        {currentStep === "flow" && selectedVersion === "cmragent" && <CMRAgentFlow />}
+        {currentStep === "flow" && selectedVersion === "cmrai" && <CMRAgentFlow />}
         {currentStep === "complete" && <CompletionScreen />}
       </motion.div>
     </AnimatePresence>
