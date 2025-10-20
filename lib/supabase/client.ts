@@ -1,6 +1,19 @@
-import { createClient } from "@supabase/supabase-js"
+let createClient: any = null
+
+try {
+  // Try to import Supabase, but don't fail if it's not available
+  const supabaseModule = await import("@supabase/supabase-js")
+  createClient = supabaseModule.createClient
+} catch (error) {
+  console.warn("[v0] Supabase package not available. Auth features are disabled.")
+}
 
 export function getSupabaseClient() {
+  // If Supabase package isn't available, return null
+  if (!createClient) {
+    return null
+  }
+
   const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const rawKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 

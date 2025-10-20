@@ -1,7 +1,21 @@
-import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import { cookies } from "next/headers"
 
+let createSupabaseClient: any = null
+
+try {
+  // Try to import Supabase, but don't fail if it's not available
+  const supabaseModule = await import("@supabase/supabase-js")
+  createSupabaseClient = supabaseModule.createClient
+} catch (error) {
+  console.warn("[v0] Supabase package not available. Server auth features are disabled.")
+}
+
 export async function createServerClient() {
+  // If Supabase package isn't available, return null
+  if (!createSupabaseClient) {
+    return null
+  }
+
   const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const rawKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
@@ -35,6 +49,11 @@ export async function createServerClient() {
 }
 
 export async function createAdminClient() {
+  // If Supabase package isn't available, return null
+  if (!createSupabaseClient) {
+    return null
+  }
+
   const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const rawServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 

@@ -64,8 +64,11 @@ export default function CMRAChatWidget() {
     try {
       const response = await fetch(`/api/chat/history?session_id=${sessionId}`)
 
-      if (!response.ok) {
-        throw new Error("Failed to load history")
+      const contentType = response.headers.get("content-type")
+      if (!response.ok || !contentType?.includes("application/json")) {
+        console.log("[v0] History endpoint not available or returned non-JSON, starting fresh chat")
+        startChat()
+        return
       }
 
       const data = await response.json()
@@ -83,7 +86,7 @@ export default function CMRAChatWidget() {
         startChat()
       }
     } catch (error) {
-      console.error("[v0] Error loading history:", error)
+      console.log("[v0] History loading failed, starting fresh chat:", error)
       startChat()
     } finally {
       setIsLoadingHistory(false)
