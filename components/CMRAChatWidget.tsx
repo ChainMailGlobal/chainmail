@@ -65,13 +65,16 @@ export default function CMRAChatWidget() {
   }, [])
 
   useEffect(() => {
-    if (isOpen && isChatStarted) {
-      // Small delay to ensure DOM is ready
-      setTimeout(() => {
-        inputRef.current?.focus()
-      }, 100)
+    if (isOpen && isChatStarted && inputRef.current) {
+      inputRef.current.focus()
     }
-  }, [isOpen, isChatStarted])
+  }, [isOpen, isChatStarted, messages.length]) // Refocus after each message
+
+  const handleChatAreaClick = () => {
+    if (isChatStarted && inputRef.current) {
+      inputRef.current.focus()
+    }
+  }
 
   const loadHistory = async () => {
     if (!sessionId) return
@@ -295,6 +298,10 @@ export default function CMRAChatWidget() {
 
     // Try streaming first, will fall back to JSON if streaming fails
     await sendMessageWithStreaming(messageText)
+
+    setTimeout(() => {
+      inputRef.current?.focus()
+    }, 100)
   }
 
   const handleVoiceToggle = () => {
@@ -563,7 +570,7 @@ export default function CMRAChatWidget() {
             </div>
           ) : (
             <>
-              <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50" onClick={handleChatAreaClick}>
                 {messages.map((message) => (
                   <div
                     key={message.id}
@@ -715,6 +722,7 @@ export default function CMRAChatWidget() {
                     onKeyPress={handleKeyPress}
                     placeholder="Type your message..."
                     disabled={isLoading}
+                    autoFocus
                     className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                   <button
