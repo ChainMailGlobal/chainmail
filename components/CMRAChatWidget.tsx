@@ -12,7 +12,6 @@ interface Message {
   text: string
   sender: "user" | "agent"
   timestamp: Date
-  isStreaming?: boolean
 }
 
 export default function CMRAChatWidget() {
@@ -24,15 +23,15 @@ export default function CMRAChatWidget() {
   const [isLoading, setIsLoading] = useState(false)
   const [hasExistingSession, setHasExistingSession] = useState(false)
   const [isLoadingHistory, setIsLoadingHistory] = useState(false)
-  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null)
   const [voiceOn, setVoiceOn] = useState(false)
   const [showVoiceControls, setShowVoiceControls] = useState(false)
   const [voiceError, setVoiceError] = useState<string | null>(null)
+  const [autoStartVoice, setAutoStartVoice] = useState(false)
   const speakRef = useRef<((text: string) => Promise<void>) | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const eventSourceRef = useRef<EventSource | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const welcomeSpokenRef = useRef(false)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -57,18 +56,10 @@ export default function CMRAChatWidget() {
   }, [sessionId])
 
   useEffect(() => {
-    return () => {
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close()
-      }
-    }
-  }, [])
-
-  useEffect(() => {
     if (isOpen && isChatStarted && inputRef.current) {
       inputRef.current.focus()
     }
-  }, [isOpen, isChatStarted, messages.length]) // Refocus after each message
+  }, [isOpen, isChatStarted, messages.length])
 
   const handleChatAreaClick = () => {
     if (isChatStarted && inputRef.current) {
@@ -132,7 +123,10 @@ export default function CMRAChatWidget() {
     }
   }
 
-  const sendMessageWithStreaming = async (messageText: string) => {
+  const sendMessage = async () => {
+    if (!inputValue.trim() || isLoading) return
+
+    const messageText = inputValue
     const userMessage: Message = {
       id: Date.now().toString(),
       text: messageText,
@@ -144,106 +138,6 @@ export default function CMRAChatWidget() {
     setInputValue("")
     setIsLoading(true)
 
-    const streamingId = `streaming-${Date.now()}`
-    const streamingMessage: Message = {
-      id: streamingId,
-      text: "",
-      sender: "agent",
-      timestamp: new Date(),
-      isStreaming: true,
-    }
-    setMessages((prev) => [...prev, streamingMessage])
-    setStreamingMessageId(streamingId)
-
-    try {
-      const streamUrl = `${BACKEND_URL}/api/chat/stream?message=${encodeURIComponent(messageText)}&session_id=${sessionId || ""}`
-      console.log("[v0] Attempting to connect to streaming endpoint:", streamUrl)
-
-      const eventSource = new EventSource(streamUrl)
-      eventSourceRef.current = eventSource
-
-      let fullResponse = ""
-      let hasReceivedData = false
-
-      eventSource.addEventListener("token", (event) => {
-        hasReceivedData = true
-        const data = JSON.parse(event.data)
-        fullResponse += data.chunk
-
-        setMessages((prev) => prev.map((msg) => (msg.id === streamingId ? { ...msg, text: fullResponse } : msg)))
-      })
-
-      eventSource.addEventListener("done", (event) => {
-        const data = JSON.parse(event.data)
-
-        if (data.session_id) {
-          setSessionId(data.session_id)
-        }
-
-        setMessages((prev) =>
-          prev.map((msg) =>
-            msg.id === streamingId
-              ? { ...msg, text: fullResponse || data.reply || "I'm here to help!", isStreaming: false }
-              : msg,
-          ),
-        )
-
-        setStreamingMessageId(null)
-        setIsLoading(false)
-        eventSource.close()
-        eventSourceRef.current = null
-      })
-
-      eventSource.addEventListener("error", async (event: Event) => {
-        console.log("[v0] EventSource error event:", {
-          readyState: eventSource.readyState,
-          url: streamUrl,
-          hasReceivedData,
-        })
-
-        eventSource.close()
-        eventSourceRef.current = null
-
-        // If we haven't received any data, fall back to JSON
-        if (!hasReceivedData) {
-          console.log("[v0] No data received from stream, falling back to JSON POST")
-          setMessages((prev) => prev.filter((msg) => msg.id !== streamingId))
-          setStreamingMessageId(null)
-          await sendMessageJSON(messageText)
-        } else {
-          // If we got partial data, just finalize what we have
-          console.log("[v0] Partial data received, finalizing stream")
-          setMessages((prev) => prev.map((msg) => (msg.id === streamingId ? { ...msg, isStreaming: false } : msg)))
-          setStreamingMessageId(null)
-          setIsLoading(false)
-        }
-      })
-
-      // Timeout fallback after 30 seconds
-      setTimeout(() => {
-        if (eventSourceRef.current) {
-          console.log("[v0] Streaming timeout after 30s, falling back to JSON")
-          eventSource.close()
-          eventSourceRef.current = null
-
-          if (!hasReceivedData) {
-            setMessages((prev) => prev.filter((msg) => msg.id !== streamingId))
-            setStreamingMessageId(null)
-            sendMessageJSON(messageText)
-          }
-        }
-      }, 30000)
-    } catch (error) {
-      console.error("[v0] Streaming setup failed:", error)
-      setMessages((prev) => prev.filter((msg) => msg.id !== streamingId))
-      setStreamingMessageId(null)
-      await sendMessageJSON(messageText)
-    }
-  }
-
-  const sendMessageJSON = async (messageText: string, attachments?: any[]) => {
-    setIsLoading(true)
-
     try {
       const response = await fetch(`${BACKEND_URL}/api/chat`, {
         method: "POST",
@@ -253,7 +147,6 @@ export default function CMRAChatWidget() {
         body: JSON.stringify({
           message: messageText,
           session_id: sessionId,
-          attachments: attachments || undefined,
         }),
       })
 
@@ -290,25 +183,24 @@ export default function CMRAChatWidget() {
       setMessages((prev) => [...prev, errorMessage])
     } finally {
       setIsLoading(false)
+      setTimeout(() => {
+        inputRef.current?.focus()
+      }, 100)
     }
-  }
-
-  const sendMessage = async () => {
-    if (!inputValue.trim() || isLoading) return
-
-    const messageText = inputValue
-
-    // Try streaming first, will fall back to JSON if streaming fails
-    await sendMessageWithStreaming(messageText)
-
-    setTimeout(() => {
-      inputRef.current?.focus()
-    }, 100)
   }
 
   const handleVoiceToggle = () => {
     setVoiceError(null)
-    setShowVoiceControls(!showVoiceControls)
+    const newShowVoice = !showVoiceControls
+    setShowVoiceControls(newShowVoice)
+    if (newShowVoice) {
+      setAutoStartVoice(true)
+      welcomeSpokenRef.current = false
+    } else {
+      setAutoStartVoice(false)
+      setVoiceOn(false)
+      welcomeSpokenRef.current = false
+    }
   }
 
   const handleCameraClick = () => {
@@ -323,7 +215,7 @@ export default function CMRAChatWidget() {
     const input = document.createElement("input")
     input.type = "file"
     input.accept = "image/*"
-    input.capture = "environment" as any // Use rear camera on mobile
+    input.capture = "environment" as any
 
     input.onchange = async (e: any) => {
       const file = e.target?.files?.[0]
@@ -403,7 +295,7 @@ export default function CMRAChatWidget() {
       }
       setMessages((prev) => [...prev, fileMessage])
 
-      await sendMessageJSON(uploadMessage, [
+      await sendUploadMessage(uploadMessage, [
         {
           kind: documentType,
           url: data.fileUrl,
@@ -416,6 +308,58 @@ export default function CMRAChatWidget() {
       const errorMessage: Message = {
         id: Date.now().toString(),
         text: `Sorry, I couldn't upload that file. ${error instanceof Error ? error.message : "Please try again."}`,
+        sender: "agent",
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, errorMessage])
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const sendUploadMessage = async (messageText: string, attachments: any[]) => {
+    setIsLoading(true)
+
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: messageText,
+          session_id: sessionId,
+          attachments,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to send message")
+      }
+
+      const data = await response.json()
+
+      if (data.session_id) {
+        setSessionId(data.session_id)
+      }
+
+      const agentResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        text: data.reply || "I'm here to help!",
+        sender: "agent",
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, agentResponse])
+
+      if (voiceOn && speakRef.current && data.reply) {
+        console.log("[v0] Speaking agent response via voice")
+        await speakRef.current(data.reply)
+      }
+    } catch (error) {
+      console.error("[v0] Error sending upload message:", error)
+      const errorMessage: Message = {
+        id: Date.now().toString(),
+        text: "Sorry, I encountered an error processing your upload. Please try again.",
         sender: "agent",
         timestamp: new Date(),
       }
@@ -482,10 +426,8 @@ export default function CMRAChatWidget() {
                 setVoiceOn(false)
                 setShowVoiceControls(false)
                 setVoiceError(null)
-                if (eventSourceRef.current) {
-                  eventSourceRef.current.close()
-                  eventSourceRef.current = null
-                }
+                setAutoStartVoice(false)
+                welcomeSpokenRef.current = false
               }}
               className="text-gray-400 hover:text-gray-600 transition-colors p-1"
               aria-label="Close chat"
@@ -575,22 +517,6 @@ export default function CMRAChatWidget() {
                       }`}
                     >
                       <p className="text-sm leading-relaxed">{message.text}</p>
-                      {message.isStreaming && (
-                        <div className="flex gap-1 mt-2">
-                          <div
-                            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                            style={{ animationDelay: "0ms" }}
-                          ></div>
-                          <div
-                            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                            style={{ animationDelay: "150ms" }}
-                          ></div>
-                          <div
-                            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                            style={{ animationDelay: "300ms" }}
-                          ></div>
-                        </div>
-                      )}
                       <p className={`text-xs mt-1 ${message.sender === "user" ? "text-indigo-100" : "text-gray-400"}`}>
                         {message.timestamp.toLocaleTimeString([], {
                           hour: "2-digit",
@@ -600,7 +526,7 @@ export default function CMRAChatWidget() {
                     </div>
                   </div>
                 ))}
-                {isLoading && !streamingMessageId && (
+                {isLoading && (
                   <div className="flex justify-start">
                     <div className="bg-white text-gray-900 border border-gray-200 rounded-2xl px-4 py-2.5">
                       <div className="flex gap-1">
@@ -631,6 +557,9 @@ export default function CMRAChatWidget() {
                       onClick={() => {
                         setShowVoiceControls(false)
                         setVoiceError(null)
+                        setAutoStartVoice(false)
+                        setVoiceOn(false)
+                        welcomeSpokenRef.current = false
                       }}
                       className="text-indigo-600 hover:text-indigo-800 text-xs"
                     >
@@ -650,11 +579,30 @@ export default function CMRAChatWidget() {
                     voicePreset="alloy"
                     buttonLabel="Start Voice"
                     stopLabel="Stop Voice"
-                    onReady={(api) => {
+                    autoStart={autoStartVoice}
+                    onReady={async (api) => {
                       speakRef.current = api.speak
                       setVoiceOn(true)
                       setVoiceError(null)
+                      setAutoStartVoice(false)
                       console.log("[v0] Voice session ready")
+
+                      if (!welcomeSpokenRef.current) {
+                        welcomeSpokenRef.current = true
+                        setTimeout(async () => {
+                          if (api.speak) {
+                            console.log("[v0] Speaking welcome message")
+                            await api.speak(
+                              "Hello! I'm your CMRAi assistant. I can hear you now. How can I help you today?",
+                            )
+                          }
+                        }, 1000)
+                      }
+                    }}
+                    onError={(error) => {
+                      setVoiceError(error)
+                      setVoiceOn(false)
+                      setAutoStartVoice(false)
                     }}
                   />
                 </div>

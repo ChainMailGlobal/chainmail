@@ -5,14 +5,18 @@ type VoiceRealtimeMiniProps = {
   buttonLabel?: string
   stopLabel?: string
   voicePreset?: string
+  autoStart?: boolean
   onReady?: (api: { speak: (text: string) => Promise<void>; stop: () => void; isActive: () => boolean }) => void
+  onError?: (error: string) => void
 }
 
 export default function VoiceRealtimeMini({
   buttonLabel = "Start Voice",
   stopLabel = "Stop",
   voicePreset = "alloy",
+  autoStart = false,
   onReady,
+  onError,
 }: VoiceRealtimeMiniProps) {
   const pcRef = React.useRef<RTCPeerConnection | null>(null)
   const localStreamRef = React.useRef<MediaStream | null>(null)
@@ -23,6 +27,13 @@ export default function VoiceRealtimeMini({
   const [error, setError] = React.useState<string | null>(null)
   const [status, setStatus] = React.useState<string>("Ready")
   const [isTransmitting, setIsTransmitting] = React.useState(false)
+
+  React.useEffect(() => {
+    if (autoStart && !active && !activeRef.current) {
+      console.log("[v0] VoiceRealtimeMini - Auto-starting voice session")
+      start()
+    }
+  }, [autoStart])
 
   async function start() {
     setError(null)
@@ -224,6 +235,9 @@ export default function VoiceRealtimeMini({
         message: errorMsg,
         stack: e?.stack,
       })
+      if (onError) {
+        onError(errorMsg)
+      }
       stop()
     }
   }
@@ -252,20 +266,22 @@ export default function VoiceRealtimeMini({
   return (
     <div style={{ display: "grid", gap: 8, maxWidth: 260 }}>
       <audio ref={remoteAudioRef} autoPlay playsInline controls={false} />
-      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-        {!active ? <button onClick={start}>{buttonLabel}</button> : <button onClick={stop}>{stopLabel}</button>}
-        {isTransmitting && (
-          <div
-            style={{
-              width: 8,
-              height: 8,
-              borderRadius: "50%",
-              backgroundColor: "#10b981",
-              animation: "pulse 1s infinite",
-            }}
-          />
-        )}
-      </div>
+      {!autoStart && (
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          {!active ? <button onClick={start}>{buttonLabel}</button> : <button onClick={stop}>{stopLabel}</button>}
+          {isTransmitting && (
+            <div
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: "50%",
+                backgroundColor: "#10b981",
+                animation: "pulse 1s infinite",
+              }}
+            />
+          )}
+        </div>
+      )}
       {active && !error && (
         <div style={{ color: "#059669", fontSize: 12, padding: 8, backgroundColor: "#d1fae5", borderRadius: 4 }}>
           Status: {status}
@@ -280,8 +296,13 @@ export default function VoiceRealtimeMini({
           <div>{error}</div>
         </div>
       )}
-      {!error && !active && (
+      {!error && !active && !autoStart && (
         <div style={{ color: "#6b7280", fontSize: 12 }}>Requires mic permission and HTTPS. Click to start.</div>
+      )}
+      {autoStart && !active && !error && (
+        <div style={{ color: "#6366f1", fontSize: 12, padding: 8, backgroundColor: "#e0e7ff", borderRadius: 4 }}>
+          Starting voice session...
+        </div>
       )}
     </div>
   )
