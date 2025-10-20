@@ -241,7 +241,7 @@ export default function CMRAChatWidget() {
     }
   }
 
-  const sendMessageJSON = async (messageText: string) => {
+  const sendMessageJSON = async (messageText: string, attachments?: any[]) => {
     setIsLoading(true)
 
     try {
@@ -253,6 +253,7 @@ export default function CMRAChatWidget() {
         body: JSON.stringify({
           message: messageText,
           session_id: sessionId,
+          attachments: attachments || undefined,
         }),
       })
 
@@ -275,6 +276,7 @@ export default function CMRAChatWidget() {
       setMessages((prev) => [...prev, agentResponse])
 
       if (voiceOn && speakRef.current && data.reply) {
+        console.log("[v0] Speaking agent response via voice")
         await speakRef.current(data.reply)
       }
     } catch (error) {
@@ -313,7 +315,10 @@ export default function CMRAChatWidget() {
     if (isLoading) return
 
     console.log("[v0] Camera button clicked")
-    console.log("[v0] BACKEND_URL for upload:", BACKEND_URL || "(empty - using relative URL)")
+
+    const documentType = confirm("Are you uploading a Photo ID? (Click OK for Photo ID, Cancel for Proof of Address)")
+      ? "photo_id"
+      : "proof_address"
 
     const input = document.createElement("input")
     input.type = "file"
@@ -324,7 +329,7 @@ export default function CMRAChatWidget() {
       const file = e.target?.files?.[0]
       if (file) {
         console.log("[v0] Camera captured file:", file.name, file.type, file.size)
-        await uploadFile(file)
+        await uploadFile(file, documentType)
       } else {
         console.log("[v0] No file selected from camera")
       }
@@ -337,7 +342,7 @@ export default function CMRAChatWidget() {
     input.click()
   }
 
-  const uploadFile = async (file: File) => {
+  const uploadFile = async (file: File, documentType: "photo_id" | "proof_address" = "photo_id") => {
     setIsLoading(true)
 
     try {
@@ -347,10 +352,13 @@ export default function CMRAChatWidget() {
         name: file.name,
         type: file.type,
         size: file.size,
+        documentType,
       })
 
       const formData = new FormData()
       formData.append("file", file)
+      formData.append("kind", documentType)
+      formData.append("case_id", sessionId || "pending")
 
       const response = await fetch(uploadUrl, {
         method: "POST",
@@ -384,46 +392,25 @@ export default function CMRAChatWidget() {
       const data = await response.json()
       console.log("[v0] Upload successful:", data)
 
+      const label = documentType === "photo_id" ? "Photo ID" : "Proof of Address"
+      const uploadMessage = `Uploaded ${label}: ${data.fileUrl || file.name}`
+
       const fileMessage: Message = {
         id: Date.now().toString(),
-        text: `📎 Uploaded: ${file.name}`,
+        text: `📎 ${uploadMessage}`,
         sender: "user",
         timestamp: new Date(),
       }
       setMessages((prev) => [...prev, fileMessage])
 
-      const chatUrl = `${BACKEND_URL}/api/chat`
-      console.log("[v0] Sending file info to chat:", chatUrl)
-
-      const fileInfoResponse = await fetch(chatUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      await sendMessageJSON(uploadMessage, [
+        {
+          kind: documentType,
+          url: data.fileUrl,
+          name: file.name,
+          type: file.type,
         },
-        body: JSON.stringify({
-          message: `I've uploaded a file: ${file.name}`,
-          session_id: sessionId,
-          fileUrl: data.fileUrl,
-          fileKey: data.fileKey,
-        }),
-      })
-
-      if (fileInfoResponse.ok) {
-        const chatData = await fileInfoResponse.json()
-        if (chatData.session_id) {
-          setSessionId(chatData.session_id)
-        }
-
-        const agentResponse: Message = {
-          id: (Date.now() + 1).toString(),
-          text: chatData.reply || "I've received your file!",
-          sender: "agent",
-          timestamp: new Date(),
-        }
-        setMessages((prev) => [...prev, agentResponse])
-      } else {
-        console.error("[v0] Chat response failed:", fileInfoResponse.status)
-      }
+      ])
     } catch (error) {
       console.error("[v0] Error uploading file:", error)
       const errorMessage: Message = {
@@ -442,7 +429,11 @@ export default function CMRAChatWidget() {
     const file = event.target.files?.[0]
     if (!file) return
 
-    await uploadFile(file)
+    const documentType = confirm("Are you uploading a Photo ID? (Click OK for Photo ID, Cancel for Proof of Address)")
+      ? "photo_id"
+      : "proof_address"
+
+    await uploadFile(file, documentType)
 
     if (fileInputRef.current) {
       fileInputRef.current.value = ""
