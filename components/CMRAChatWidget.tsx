@@ -27,6 +27,7 @@ export default function CMRAChatWidget() {
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null)
   const [voiceOn, setVoiceOn] = useState(false)
   const [showVoiceControls, setShowVoiceControls] = useState(false)
+  const [voiceError, setVoiceError] = useState<string | null>(null)
   const speakRef = useRef<((text: string) => Promise<void>) | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -297,6 +298,7 @@ export default function CMRAChatWidget() {
   }
 
   const handleVoiceToggle = () => {
+    setVoiceError(null)
     setShowVoiceControls(!showVoiceControls)
   }
 
@@ -481,6 +483,7 @@ export default function CMRAChatWidget() {
                 setMessages([])
                 setVoiceOn(false)
                 setShowVoiceControls(false)
+                setVoiceError(null)
                 if (eventSourceRef.current) {
                   eventSourceRef.current.close()
                   eventSourceRef.current = null
@@ -627,12 +630,24 @@ export default function CMRAChatWidget() {
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium text-indigo-900">Voice Controls</span>
                     <button
-                      onClick={() => setShowVoiceControls(false)}
+                      onClick={() => {
+                        setShowVoiceControls(false)
+                        setVoiceError(null)
+                      }}
                       className="text-indigo-600 hover:text-indigo-800 text-xs"
                     >
                       Hide
                     </button>
                   </div>
+                  {voiceError && (
+                    <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                      <p className="text-sm text-red-800 font-medium">Voice Error:</p>
+                      <p className="text-xs text-red-600 mt-1">{voiceError}</p>
+                      <p className="text-xs text-red-500 mt-2">
+                        Make sure AGENT_BACKEND_BASE is set and the backend /api/voice/token endpoint is working.
+                      </p>
+                    </div>
+                  )}
                   <VoiceRealtimeMini
                     voicePreset="alloy"
                     buttonLabel="Start Voice"
@@ -640,6 +655,8 @@ export default function CMRAChatWidget() {
                     onReady={(api) => {
                       speakRef.current = api.speak
                       setVoiceOn(true)
+                      setVoiceError(null)
+                      console.log("[v0] Voice session ready")
                     }}
                   />
                 </div>

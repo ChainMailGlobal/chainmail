@@ -26,6 +26,7 @@ export default function VoiceRealtimeMini({
     setError(null)
     try {
       console.log("[v0] VoiceRealtimeMini - Starting voice session with preset:", voicePreset)
+      console.log("[v0] VoiceRealtimeMini - Calling /api/voice/token endpoint")
 
       const pc = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] })
       pcRef.current = pc
@@ -80,12 +81,19 @@ export default function VoiceRealtimeMini({
 
       if (!tokenResp.ok) {
         const message =
-          tokenPayload?.detail ?? tokenPayload?.error ?? `Voice token request failed (${tokenResp.status})`
+          tokenPayload?.detail ??
+          tokenPayload?.error ??
+          `Voice token request failed (${tokenResp.status}). Check that AGENT_BACKEND_BASE is set and /api/voice/token endpoint is working.`
+        console.error("[v0] VoiceRealtimeMini - Token request failed:", message)
         throw new Error(message)
       }
 
       if (!tokenPayload?.client_secret?.value) {
-        const message = tokenPayload?.detail ?? tokenPayload?.error ?? "No realtime client secret returned"
+        const message =
+          tokenPayload?.detail ??
+          tokenPayload?.error ??
+          "No realtime client secret returned from backend. The /api/voice/token endpoint may not be configured correctly."
+        console.error("[v0] VoiceRealtimeMini - Missing client secret:", message)
         throw new Error(message)
       }
 
@@ -129,7 +137,12 @@ export default function VoiceRealtimeMini({
       await remoteAudioRef.current?.play().catch(() => {})
     } catch (e: any) {
       console.error("[v0] VoiceRealtimeMini - Error:", e)
-      setError(e?.message || String(e))
+      const errorMsg = e?.message || String(e)
+      setError(errorMsg)
+      console.error("[v0] VoiceRealtimeMini - Full error details:", {
+        message: errorMsg,
+        stack: e?.stack,
+      })
       stop()
     }
   }
@@ -158,7 +171,12 @@ export default function VoiceRealtimeMini({
       <div style={{ display: "flex", gap: 8 }}>
         {!active ? <button onClick={start}>{buttonLabel}</button> : <button onClick={stop}>{stopLabel}</button>}
       </div>
-      {error && <div style={{ color: "#b91c1c", fontSize: 12 }}>Voice error: {error}</div>}
+      {error && (
+        <div style={{ color: "#b91c1c", fontSize: 12, padding: 8, backgroundColor: "#fee2e2", borderRadius: 4 }}>
+          <div style={{ fontWeight: 600, marginBottom: 4 }}>Voice Error:</div>
+          <div>{error}</div>
+        </div>
+      )}
       {!error && !active && (
         <div style={{ color: "#6b7280", fontSize: 12 }}>Requires mic permission and HTTPS. Click to start.</div>
       )}

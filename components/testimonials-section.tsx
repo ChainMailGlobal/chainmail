@@ -7,7 +7,7 @@ const testimonials = [
     role: "Product Manager",
     company: "TechFlow Inc.",
     content:
-      "CMRAgent transformed our CMRA compliance process. We've reduced compliance time by 95% and eliminated audit risks completely.",
+      "CMRAi transformed our CMRA compliance process. We've reduced compliance time by 95% and eliminated audit risks completely.",
     rating: 5,
   },
   {
@@ -23,7 +23,7 @@ const testimonials = [
     role: "CMRA Manager",
     company: "InnovateCorp",
     content:
-      "Best compliance investment we've made. The USPS-ready submissions and audit trails give us complete peace of mind. Highly recommend CMRAgent.",
+      "Best compliance investment we've made. The USPS-ready submissions and audit trails give us complete peace of mind. Highly recommend CMRAi.",
     rating: 5,
   },
 ]
@@ -37,7 +37,7 @@ export function TestimonialsSection() {
             Trusted by CMRA Operators Nationwide
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            See what our customers say about their compliance experience with CMRAgent
+            See what our customers say about their compliance experience with CMRAi
           </p>
         </div>
 

@@ -19,9 +19,9 @@ const sourceSansPro = Source_Sans_Pro({
 })
 
 export const metadata: Metadata = {
-  title: "CMRAgent - CMRA Compliance Made Simple",
+  title: "CMRAi - Your CMRA AI Co-Pilot",
   description:
-    "The compliance-first solution for CMRA operators. Turn 2-week compliance processes into 3 minutes with AI witness and blockchain audit trails.",
+    "Your autonomous CMRA compliance platform. Turn 2-week compliance processes into 3 minutes with AI witness and blockchain audit trails.",
     generator: 'v0.app'
 }
 
