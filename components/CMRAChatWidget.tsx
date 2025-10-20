@@ -31,7 +31,6 @@ export default function CMRAChatWidget() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-  const welcomeSpokenRef = useRef(false)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -195,11 +194,9 @@ export default function CMRAChatWidget() {
     setShowVoiceControls(newShowVoice)
     if (newShowVoice) {
       setAutoStartVoice(true)
-      welcomeSpokenRef.current = false
     } else {
       setAutoStartVoice(false)
       setVoiceOn(false)
-      welcomeSpokenRef.current = false
     }
   }
 
@@ -427,7 +424,6 @@ export default function CMRAChatWidget() {
                 setShowVoiceControls(false)
                 setVoiceError(null)
                 setAutoStartVoice(false)
-                welcomeSpokenRef.current = false
               }}
               className="text-gray-400 hover:text-gray-600 transition-colors p-1"
               aria-label="Close chat"
@@ -559,7 +555,6 @@ export default function CMRAChatWidget() {
                         setVoiceError(null)
                         setAutoStartVoice(false)
                         setVoiceOn(false)
-                        welcomeSpokenRef.current = false
                       }}
                       className="text-indigo-600 hover:text-indigo-800 text-xs"
                     >
@@ -586,18 +581,6 @@ export default function CMRAChatWidget() {
                       setVoiceError(null)
                       setAutoStartVoice(false)
                       console.log("[v0] Voice session ready")
-
-                      if (!welcomeSpokenRef.current) {
-                        welcomeSpokenRef.current = true
-                        setTimeout(async () => {
-                          if (api.speak) {
-                            console.log("[v0] Speaking welcome message")
-                            await api.speak(
-                              "Hello! I'm your CMRAi assistant. I can hear you now. How can I help you today?",
-                            )
-                          }
-                        }, 1000)
-                      }
                     }}
                     onError={(error) => {
                       setVoiceError(error)
