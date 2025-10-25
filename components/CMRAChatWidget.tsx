@@ -15,7 +15,23 @@ interface Message {
 }
 
 export default function CMRAChatWidget() {
+  useEffect(() => {
+    console.log("[v0] ========================================")
+    console.log("[v0] CMRAChatWidget MOUNTED")
+    console.log("[v0] BACKEND_URL:", BACKEND_URL)
+    console.log("[v0] ========================================")
+  }, [])
+
   const [isOpen, setIsOpen] = useState(false)
+
+  useEffect(() => {
+    if (isOpen) {
+      console.log("[v0] Chat widget OPENED")
+    } else {
+      console.log("[v0] Chat widget CLOSED")
+    }
+  }, [isOpen])
+
   const [isChatStarted, setIsChatStarted] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [inputValue, setInputValue] = useState("")
@@ -27,6 +43,8 @@ export default function CMRAChatWidget() {
   const [showVoiceControls, setShowVoiceControls] = useState(false)
   const [voiceError, setVoiceError] = useState<string | null>(null)
   const [autoStartVoice, setAutoStartVoice] = useState(false)
+  const [showDocumentTypeModal, setShowDocumentTypeModal] = useState(false)
+  const [pendingCameraCapture, setPendingCameraCapture] = useState(false)
   const speakRef = useRef<((text: string) => Promise<void>) | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -211,10 +229,12 @@ export default function CMRAChatWidget() {
     if (isLoading) return
 
     console.log("[v0] Camera button clicked")
+    setPendingCameraCapture(true)
+    setShowDocumentTypeModal(true)
+  }
 
-    const documentType = confirm("Are you uploading a Photo ID? (Click OK for Photo ID, Cancel for Proof of Address)")
-      ? "photo_id"
-      : "proof_address"
+  const handleDocumentTypeSelect = (documentType: "photo_id" | "proof_address") => {
+    setShowDocumentTypeModal(false)
 
     const input = document.createElement("input")
     input.type = "file"
@@ -229,10 +249,12 @@ export default function CMRAChatWidget() {
       } else {
         console.log("[v0] No file selected from camera")
       }
+      setPendingCameraCapture(false)
     }
 
     input.onerror = (error) => {
       console.error("[v0] Camera input error:", error)
+      setPendingCameraCapture(false)
     }
 
     input.click()
@@ -377,15 +399,20 @@ export default function CMRAChatWidget() {
     const file = event.target.files?.[0]
     if (!file) return
 
-    const documentType = confirm("Are you uploading a Photo ID? (Click OK for Photo ID, Cancel for Proof of Address)")
-      ? "photo_id"
-      : "proof_address"
+    setShowDocumentTypeModal(true)
+    setPendingCameraCapture(false)
 
-    await uploadFile(file, documentType)
+    // Store the file temporarily
+    const tempFile = file
 
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ""
+    // Wait for user selection
+    const handleSelection = (documentType: "photo_id" | "proof_address") => {
+      setShowDocumentTypeModal(false)
+      uploadFile(tempFile, documentType)
     }
+
+    // This will be handled by the modal buttons
+    ;(window as any).__pendingFileUpload = handleSelection
   }
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -404,6 +431,72 @@ export default function CMRAChatWidget() {
         >
           <Shield className="w-8 h-8" />
         </button>
+      )}
+
+      {showDocumentTypeModal && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 max-w-md mx-4 animate-in fade-in zoom-in duration-200">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <Paperclip className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Select Document Type</h3>
+              <p className="text-sm text-gray-600">What type of document are you uploading?</p>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => {
+                  if (pendingCameraCapture) {
+                    handleDocumentTypeSelect("photo_id")
+                  } else {
+                    const handler = (window as any).__pendingFileUpload
+                    if (handler) {
+                      handler("photo_id")
+                      delete (window as any).__pendingFileUpload
+                    }
+                  }
+                }}
+                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-4 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl flex items-center justify-between group"
+              >
+                <span>Photo ID</span>
+                <span className="text-sm opacity-80 group-hover:opacity-100">Driver's License, Passport, etc.</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  if (pendingCameraCapture) {
+                    handleDocumentTypeSelect("proof_address")
+                  } else {
+                    const handler = (window as any).__pendingFileUpload
+                    if (handler) {
+                      handler("proof_address")
+                      delete (window as any).__pendingFileUpload
+                    }
+                  }
+                }}
+                className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-4 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl flex items-center justify-between group"
+              >
+                <span>Proof of Address</span>
+                <span className="text-sm opacity-80 group-hover:opacity-100">Utility Bill, Bank Statement, etc.</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowDocumentTypeModal(false)
+                  setPendingCameraCapture(false)
+                  delete (window as any).__pendingFileUpload
+                  if (fileInputRef.current) {
+                    fileInputRef.current.value = ""
+                  }
+                }}
+                className="w-full bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-200 px-6 py-3 rounded-xl font-semibold transition-all"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {isOpen && (
