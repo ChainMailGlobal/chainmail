@@ -27,6 +27,7 @@ export default function CMRAChatWidget() {
     }
   }, [isOpen])
 
+  const [chatMode, setChatMode] = useState<"voice" | "text" | null>(null)
   const [isChatStarted, setIsChatStarted] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [inputValue, setInputValue] = useState("")
@@ -416,6 +417,21 @@ export default function CMRAChatWidget() {
     }
   }
 
+  const handleModeSelection = (mode: "voice" | "text") => {
+    console.log("[v0] User selected mode:", mode)
+    setChatMode(mode)
+
+    if (mode === "voice") {
+      // Auto-start voice mode
+      setShowVoiceControls(true)
+      setAutoStartVoice(true)
+      setIsChatStarted(true)
+    } else {
+      // Start text mode
+      startChat(false)
+    }
+  }
+
   return (
     <>
       {!isOpen && (
@@ -513,6 +529,7 @@ export default function CMRAChatWidget() {
             <button
               onClick={() => {
                 setIsOpen(false)
+                setChatMode(null)
                 setIsChatStarted(false)
                 setMessages([])
                 setVoiceOn(false)
@@ -527,70 +544,76 @@ export default function CMRAChatWidget() {
             </button>
           </div>
 
-          {!isChatStarted ? (
+          {!chatMode ? (
             <div className="p-6 sm:p-8 text-center flex-1 flex flex-col justify-center">
               <div className="relative inline-block mb-4 sm:mb-6 mx-auto">
                 <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg">
                   <Shield className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
                 </div>
-                <div className="absolute -top-1 -right-1 w-6 h-6 bg-blue-600 text-white text-xs font-bold rounded-full flex items-center justify-center border-2 border-white">
-                  0
-                </div>
               </div>
 
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-3">
-                {hasExistingSession ? "Welcome Back!" : "Start Your Form 1583"}
-              </h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-3">Welcome to CMRAi</h2>
 
               <p className="text-gray-600 text-sm leading-relaxed mb-6 sm:mb-8">
-                {hasExistingSession
-                  ? "Continue your previous conversation or start fresh."
-                  : "Chat with our AI agent to complete your USPS Form 1583 in minutes with full witness verification."}
+                Choose how you'd like to complete your USPS Form 1583 with full witness verification.
               </p>
 
-              {isLoadingHistory ? (
-                <div className="flex justify-center items-center py-4">
-                  <div className="flex gap-1">
-                    <div
-                      className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce"
-                      style={{ animationDelay: "0ms" }}
-                    ></div>
-                    <div
-                      className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce"
-                      style={{ animationDelay: "150ms" }}
-                    ></div>
-                    <div
-                      className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce"
-                      style={{ animationDelay: "300ms" }}
-                    ></div>
+              <div className="space-y-4">
+                <button
+                  onClick={() => handleModeSelection("voice")}
+                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-5 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl flex items-center justify-between group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
+                      <Mic className="w-6 h-6" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-bold text-lg">Start Voice Chat</div>
+                      <div className="text-sm opacity-90">Speak naturally with AI assistance</div>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {hasExistingSession && (
-                    <button
-                      onClick={() => startChat(true)}
-                      className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 active:from-indigo-800 active:to-purple-800 text-white px-6 py-3.5 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl"
-                    >
-                      Continue Conversation
-                    </button>
-                  )}
-                  <button
-                    onClick={() => startChat(false)}
-                    className={`w-full ${
-                      hasExistingSession
-                        ? "bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-200"
-                        : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl"
-                    } px-6 py-3.5 rounded-xl font-semibold transition-all`}
-                  >
-                    {hasExistingSession ? "Start New Chat" : "Start Chat Now"}
-                  </button>
-                </div>
-              )}
+                  <div className="text-2xl opacity-50 group-hover:opacity-100 transition-opacity">→</div>
+                </button>
 
-              <p className="text-xs text-gray-600 mt-3 sm:mt-4 font-medium">
-                Voice, camera, and upload capabilities included
-              </p>
+                <button
+                  onClick={() => handleModeSelection("text")}
+                  className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-5 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl flex items-center justify-between group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
+                      <Send className="w-6 h-6" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-bold text-lg">Start Text Chat</div>
+                      <div className="text-sm opacity-90">Type your responses at your own pace</div>
+                    </div>
+                  </div>
+                  <div className="text-2xl opacity-50 group-hover:opacity-100 transition-opacity">→</div>
+                </button>
+              </div>
+
+              <p className="text-xs text-gray-500 mt-6">Both modes include camera and document upload capabilities</p>
+            </div>
+          ) : !isChatStarted ? (
+            <div className="p-6 sm:p-8 text-center flex-1 flex flex-col justify-center">
+              {hasExistingSession && (
+                <button
+                  onClick={() => startChat(true)}
+                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 active:from-indigo-800 active:to-purple-800 text-white px-6 py-3.5 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl"
+                >
+                  Continue Conversation
+                </button>
+              )}
+              <button
+                onClick={() => startChat(false)}
+                className={`w-full ${
+                  hasExistingSession
+                    ? "bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-200"
+                    : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl"
+                } px-6 py-3.5 rounded-xl font-semibold transition-all`}
+              >
+                {hasExistingSession ? "Start New Chat" : "Start Chat Now"}
+              </button>
             </div>
           ) : (
             <>
