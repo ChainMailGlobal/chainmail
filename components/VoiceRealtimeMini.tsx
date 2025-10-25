@@ -140,6 +140,22 @@ export default function VoiceRealtimeMini({
           }),
         )
 
+        chan.send(
+          JSON.stringify({
+            type: "conversation.item.create",
+            item: {
+              type: "message",
+              role: "assistant",
+              content: [
+                {
+                  type: "text",
+                  text: reply,
+                },
+              ],
+            },
+          }),
+        )
+
         chan.send(JSON.stringify({ type: "response.create" }))
 
         setTimeout(() => {
