@@ -39,6 +39,7 @@ export default function VoiceRealtimeMini({
   const audioContainerRef = React.useRef<HTMLDivElement | null>(null)
   const functionCallBufferRef = React.useRef<string>("")
   const currentFunctionNameRef = React.useRef<string>("")
+  const isSpeakingResponseRef = React.useRef(false)
   const [active, setActive] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [status, setStatus] = React.useState<string>("Ready")
@@ -126,14 +127,32 @@ export default function VoiceRealtimeMini({
 
       console.log("[v0] VoiceRealtimeMini - Got chat response:", reply.substring(0, 50))
 
-      // Speak the response
+      isSpeakingResponseRef.current = true
+
       const chan = dcRef.current
       if (activeRef.current && chan && chan.readyState === "open") {
-        const payload = { type: "response.create", response: { instructions: String(reply) } }
-        chan.send(JSON.stringify(payload))
+        const functionResult = {
+          type: "conversation.item.create",
+          item: {
+            type: "function_call_output",
+            call_id: `call_${Date.now()}`,
+            output: JSON.stringify({ response: reply }),
+          },
+        }
+        chan.send(JSON.stringify(functionResult))
+
+        const createResponse = {
+          type: "response.create",
+        }
+        chan.send(JSON.stringify(createResponse))
+
+        setTimeout(() => {
+          isSpeakingResponseRef.current = false
+        }, 2000)
       }
     } catch (e: any) {
       console.error("[v0] VoiceRealtimeMini - Chat turn failed:", e)
+      isSpeakingResponseRef.current = false
     }
   }
 
@@ -177,7 +196,6 @@ export default function VoiceRealtimeMini({
         }
       }
 
-      // Mic
       setStatus("Requesting microphone...")
       console.log("[v0] VoiceRealtimeMini - Requesting microphone access...")
       const local = await navigator.mediaDevices.getUserMedia({ audio: true })
@@ -187,7 +205,6 @@ export default function VoiceRealtimeMini({
         pc.addTrack(track, local)
       }
 
-      // Data channel
       const dc = pc.createDataChannel("oai-events")
       dcRef.current = dc
 
@@ -207,12 +224,15 @@ export default function VoiceRealtimeMini({
           const event = JSON.parse(e.data)
           console.log("[v0] VoiceRealtimeMini - Event type:", event.type)
 
-          // Handle function call arguments
+          if (isSpeakingResponseRef.current && event.type?.includes("function_call")) {
+            console.log("[v0] VoiceRealtimeMini - Ignoring function call during response playback")
+            return
+          }
+
           if (event.type === "response.function_call_arguments.delta") {
             functionCallBufferRef.current += event.delta || ""
           }
 
-          // Handle function call start
           if (event.type === "response.function_call_arguments.done") {
             const functionName = event.name || currentFunctionNameRef.current
             currentFunctionNameRef.current = functionName
@@ -220,7 +240,6 @@ export default function VoiceRealtimeMini({
             console.log("[v0] VoiceRealtimeMini - Function call done:", functionName)
             console.log("[v0] VoiceRealtimeMini - Function arguments:", functionCallBufferRef.current)
 
-            // Handle cmra_chat_turn function
             if (functionName === "cmra_chat_turn") {
               try {
                 const args = JSON.parse(functionCallBufferRef.current || "{}")
@@ -231,12 +250,10 @@ export default function VoiceRealtimeMini({
               }
             }
 
-            // Reset buffer
             functionCallBufferRef.current = ""
             currentFunctionNameRef.current = ""
           }
 
-          // Track transmission
           if (event.type?.includes("audio") || event.type?.includes("response")) {
             setIsTransmitting(true)
             setTimeout(() => setIsTransmitting(false), 1000)
@@ -246,7 +263,6 @@ export default function VoiceRealtimeMini({
         }
       }
 
-      // Create offer
       setStatus("Creating offer...")
       const offer = await pc.createOffer({ offerToReceiveAudio: true })
       await pc.setLocalDescription(offer)
@@ -359,6 +375,7 @@ export default function VoiceRealtimeMini({
     setNeedsUnmute(false)
     functionCallBufferRef.current = ""
     currentFunctionNameRef.current = ""
+    isSpeakingResponseRef.current = false
     try {
       pcRef.current?.getSenders().forEach((s) => s.track?.stop())
       pcRef.current?.close()

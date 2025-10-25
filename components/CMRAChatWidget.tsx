@@ -5,8 +5,6 @@ import { useState, useRef, useEffect } from "react"
 import { X, Send, Paperclip, Shield, Mic, Video } from "@/lib/icons"
 import VoiceRealtimeMini from "./VoiceRealtimeMini"
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_AGENT_BACKEND_BASE || ""
-
 interface Message {
   id: string
   text: string
@@ -16,10 +14,7 @@ interface Message {
 
 export default function CMRAChatWidget() {
   useEffect(() => {
-    console.log("[v0] ========================================")
     console.log("[v0] CMRAChatWidget MOUNTED")
-    console.log("[v0] BACKEND_URL:", BACKEND_URL)
-    console.log("[v0] ========================================")
   }, [])
 
   const [isOpen, setIsOpen] = useState(false)
@@ -89,7 +84,7 @@ export default function CMRAChatWidget() {
 
     setIsLoadingHistory(true)
     try {
-      const response = await fetch(`${BACKEND_URL}/api/chat/history?session_id=${sessionId}`)
+      const response = await fetch(`/api/chat/history?session_id=${sessionId}`)
 
       const contentType = response.headers.get("content-type")
       if (!response.ok || !contentType?.includes("application/json")) {
@@ -156,7 +151,7 @@ export default function CMRAChatWidget() {
     setIsLoading(true)
 
     try {
-      const response = await fetch(`${BACKEND_URL}/api/chat`, {
+      const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -264,7 +259,7 @@ export default function CMRAChatWidget() {
     setIsLoading(true)
 
     try {
-      const uploadUrl = `${BACKEND_URL}/api/upload`
+      const uploadUrl = "/api/upload"
       console.log("[v0] Uploading file to:", uploadUrl)
       console.log("[v0] File details:", {
         name: file.name,
@@ -347,7 +342,7 @@ export default function CMRAChatWidget() {
     setIsLoading(true)
 
     try {
-      const response = await fetch(`${BACKEND_URL}/api/chat`, {
+      const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
