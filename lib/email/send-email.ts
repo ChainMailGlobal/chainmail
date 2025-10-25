@@ -1,7 +1,12 @@
 "use server"
 
 import { Resend } from "resend"
-import { getSessionConfirmationEmail, getSessionCompleteEmail, getSessionReminderEmail } from "./templates"
+import {
+  getSessionConfirmationEmail,
+  getSessionCompleteEmail,
+  getSessionReminderEmail,
+  getCustomerInviteEmail,
+} from "./templates"
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
@@ -119,6 +124,41 @@ export async function sendSessionReminderEmail(data: {
         to: data.to,
         subject: template.subject,
         html: template.html,
+      })
+      console.log("[v0] Email sent successfully via Resend")
+    } else {
+      console.log("[v0] RESEND_API_KEY not configured. Email would be sent:", {
+        to: data.to,
+        subject: template.subject,
+      })
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error("[v0] Error sending email:", error)
+    return { success: false, error: "Failed to send email" }
+  }
+}
+
+export async function sendCustomerInviteEmail(data: {
+  to: string
+  customerName?: string
+  cmraName: string
+  inviteLink: string
+  expiresAt: string
+}) {
+  try {
+    const template = getCustomerInviteEmail(data)
+
+    console.log("[v0] Sending customer invite email to:", data.to)
+
+    if (resend) {
+      await resend.emails.send({
+        from: "MailboxHero Pro <noreply@mailboxhero.pro>",
+        to: data.to,
+        subject: template.subject,
+        html: template.html,
+        text: template.text,
       })
       console.log("[v0] Email sent successfully via Resend")
     } else {

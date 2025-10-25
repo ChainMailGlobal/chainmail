@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { USPSIntegrationCard } from "./usps-integration-card"
+import { BulkCustomerInvite } from "./bulk-customer-invite"
 import {
   CheckCircle,
   Clock,
@@ -326,13 +327,18 @@ export function CMRAgentDashboard({ data }: CMRADashboardProps) {
         )}
 
         {activeTab === "customers" && (
-          <CustomerOnboardingHub
-            cmraLocationId={data.agent.id}
-            availableVerificationMethods={["v1", "v2", "v3"]}
-            onCustomerCreated={(customer) => {
-              console.log("New customer created:", customer)
-            }}
-          />
+          <div className="space-y-6">
+            {/* Bulk Invite Section */}
+            <BulkCustomerInvite cmraLocationId={data.agent.id} cmraName={data.agent.businessName} />
+
+            <CustomerOnboardingHub
+              cmraLocationId={data.agent.id}
+              availableVerificationMethods={["v1", "v2", "v3"]}
+              onCustomerCreated={(customer) => {
+                console.log("New customer created:", customer)
+              }}
+            />
+          </div>
         )}
 
         {activeTab === "compliance" && <ComplianceCommandCenter cmraLocationId={data.agent.id} />}
