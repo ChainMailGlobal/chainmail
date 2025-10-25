@@ -20,6 +20,17 @@ export default function VoiceRealtimeMini({
   onReady,
   onError,
 }: VoiceRealtimeMiniProps) {
+  React.useEffect(() => {
+    console.log("[v0] VoiceRealtimeMini - Component mounted with props:", {
+      autoStart,
+      voicePreset,
+      sessionId,
+    })
+    return () => {
+      console.log("[v0] VoiceRealtimeMini - Component unmounting")
+    }
+  }, [])
+
   const pcRef = React.useRef<RTCPeerConnection | null>(null)
   const localStreamRef = React.useRef<MediaStream | null>(null)
   const remoteAudioRef = React.useRef<HTMLAudioElement | null>(null)
@@ -53,7 +64,6 @@ export default function VoiceRealtimeMini({
     }
 
     return () => {
-      // Cleanup on unmount
       if (remoteAudioRef.current && audioContainerRef.current?.contains(remoteAudioRef.current)) {
         audioContainerRef.current.removeChild(remoteAudioRef.current)
       }
@@ -61,9 +71,20 @@ export default function VoiceRealtimeMini({
   }, [])
 
   React.useEffect(() => {
+    console.log("[v0] VoiceRealtimeMini - Auto-start effect triggered:", {
+      autoStart,
+      active,
+      activeRef: activeRef.current,
+    })
     if (autoStart && !active && !activeRef.current) {
-      console.log("[v0] VoiceRealtimeMini - Auto-starting voice session")
-      start()
+      console.log("[v0] VoiceRealtimeMini - Initiating auto-start...")
+      start().catch((e) => {
+        console.error("[v0] VoiceRealtimeMini - Auto-start failed:", e)
+        setError(e.message || String(e))
+        if (onError) {
+          onError(e.message || String(e))
+        }
+      })
     }
   }, [autoStart])
 
@@ -117,6 +138,7 @@ export default function VoiceRealtimeMini({
   }
 
   async function start() {
+    console.log("[v0] VoiceRealtimeMini - start() function called")
     setError(null)
     setStatus("Initializing...")
     setNeedsUnmute(false)
@@ -319,7 +341,7 @@ export default function VoiceRealtimeMini({
         })
       }
     } catch (e: any) {
-      console.error("[v0] VoiceRealtimeMini - Error:", e)
+      console.error("[v0] VoiceRealtimeMini - Error in start():", e)
       const errorMsg = e?.message || String(e)
       setError(errorMsg)
       setStatus("Error")
@@ -327,6 +349,7 @@ export default function VoiceRealtimeMini({
         onError(errorMsg)
       }
       stop()
+      throw e
     }
   }
 

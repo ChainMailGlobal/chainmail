@@ -189,12 +189,19 @@ export default function CMRAChatWidget() {
   }
 
   const handleVoiceToggle = () => {
+    console.log("[v0] CMRAChatWidget - Voice button clicked, current state:", {
+      showVoiceControls,
+      voiceOn,
+      autoStartVoice,
+    })
     setVoiceError(null)
     const newShowVoice = !showVoiceControls
     setShowVoiceControls(newShowVoice)
     if (newShowVoice) {
+      console.log("[v0] CMRAChatWidget - Enabling voice controls with auto-start")
       setAutoStartVoice(true)
     } else {
+      console.log("[v0] CMRAChatWidget - Disabling voice controls")
       setAutoStartVoice(false)
       setVoiceOn(false)
     }
