@@ -436,7 +436,10 @@ export default function CMRAChatWidget() {
     <>
       {!isOpen && (
         <button
-          onClick={() => setIsOpen(true)}
+          onClick={() => {
+            console.log("[v0] Chat button clicked - opening chat")
+            setIsOpen(true)
+          }}
           className="fixed bottom-6 right-6 z-[9999] bg-gradient-to-br from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-full p-5 shadow-2xl transition-all hover:scale-110 active:scale-95"
           aria-label="Open CMRAi chat"
         >
