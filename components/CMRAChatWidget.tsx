@@ -575,6 +575,7 @@ export default function CMRAChatWidget() {
                     buttonLabel="Start Voice"
                     stopLabel="Stop Voice"
                     autoStart={autoStartVoice}
+                    sessionId={sessionId || undefined}
                     onReady={async (api) => {
                       speakRef.current = api.speak
                       setVoiceOn(true)

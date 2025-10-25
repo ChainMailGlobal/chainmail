@@ -6,6 +6,7 @@ type VoiceRealtimeMiniProps = {
   stopLabel?: string
   voicePreset?: string
   autoStart?: boolean
+  sessionId?: string
   onReady?: (api: { speak: (text: string) => Promise<void>; stop: () => void; isActive: () => boolean }) => void
   onError?: (error: string) => void
 }
@@ -15,6 +16,7 @@ export default function VoiceRealtimeMini({
   stopLabel = "Stop",
   voicePreset = "alloy",
   autoStart = false,
+  sessionId,
   onReady,
   onError,
 }: VoiceRealtimeMiniProps) {
@@ -24,6 +26,8 @@ export default function VoiceRealtimeMini({
   const dcRef = React.useRef<RTCDataChannel | null>(null)
   const activeRef = React.useRef(false)
   const audioContainerRef = React.useRef<HTMLDivElement | null>(null)
+  const functionCallBufferRef = React.useRef<string>("")
+  const currentFunctionNameRef = React.useRef<string>("")
   const [active, setActive] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [status, setStatus] = React.useState<string>("Ready")
@@ -76,6 +80,39 @@ export default function VoiceRealtimeMini({
         .catch((e) => {
           console.warn("[v0] VoiceRealtimeMini - Unmute failed:", e)
         })
+    }
+  }
+
+  async function handleChatTurn(message: string) {
+    try {
+      console.log("[v0] VoiceRealtimeMini - Handling chat turn:", message.substring(0, 50))
+
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message,
+          session_id: sessionId || `voice_${Date.now()}`,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Chat API failed: ${response.status}`)
+      }
+
+      const data = await response.json()
+      const reply = data.reply || data.message || "I'm here to help."
+
+      console.log("[v0] VoiceRealtimeMini - Got chat response:", reply.substring(0, 50))
+
+      // Speak the response
+      const chan = dcRef.current
+      if (activeRef.current && chan && chan.readyState === "open") {
+        const payload = { type: "response.create", response: { instructions: String(reply) } }
+        chan.send(JSON.stringify(payload))
+      }
+    } catch (e: any) {
+      console.error("[v0] VoiceRealtimeMini - Chat turn failed:", e)
     }
   }
 
@@ -144,10 +181,47 @@ export default function VoiceRealtimeMini({
         console.error("[v0] VoiceRealtimeMini - Data channel error:", e)
       }
       dc.onmessage = (e) => {
-        const msg = e.data.substring(0, 100)
-        console.log("[v0] VoiceRealtimeMini - Received message from OpenAI:", msg)
-        setIsTransmitting(true)
-        setTimeout(() => setIsTransmitting(false), 1000)
+        try {
+          const event = JSON.parse(e.data)
+          console.log("[v0] VoiceRealtimeMini - Event type:", event.type)
+
+          // Handle function call arguments
+          if (event.type === "response.function_call_arguments.delta") {
+            functionCallBufferRef.current += event.delta || ""
+          }
+
+          // Handle function call start
+          if (event.type === "response.function_call_arguments.done") {
+            const functionName = event.name || currentFunctionNameRef.current
+            currentFunctionNameRef.current = functionName
+
+            console.log("[v0] VoiceRealtimeMini - Function call done:", functionName)
+            console.log("[v0] VoiceRealtimeMini - Function arguments:", functionCallBufferRef.current)
+
+            // Handle cmra_chat_turn function
+            if (functionName === "cmra_chat_turn") {
+              try {
+                const args = JSON.parse(functionCallBufferRef.current || "{}")
+                const message = args.message || args.user_message || functionCallBufferRef.current
+                handleChatTurn(message)
+              } catch {
+                handleChatTurn(functionCallBufferRef.current)
+              }
+            }
+
+            // Reset buffer
+            functionCallBufferRef.current = ""
+            currentFunctionNameRef.current = ""
+          }
+
+          // Track transmission
+          if (event.type?.includes("audio") || event.type?.includes("response")) {
+            setIsTransmitting(true)
+            setTimeout(() => setIsTransmitting(false), 1000)
+          }
+        } catch (err) {
+          console.warn("[v0] VoiceRealtimeMini - Failed to parse event:", err)
+        }
       }
 
       // Create offer
@@ -260,6 +334,8 @@ export default function VoiceRealtimeMini({
     console.log("[v0] VoiceRealtimeMini - Stopping voice session")
     setIsTransmitting(false)
     setNeedsUnmute(false)
+    functionCallBufferRef.current = ""
+    currentFunctionNameRef.current = ""
     try {
       pcRef.current?.getSenders().forEach((s) => s.track?.stop())
       pcRef.current?.close()

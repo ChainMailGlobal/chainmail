@@ -8,11 +8,13 @@ export async function POST(request: NextRequest) {
     console.log("[v0] Voice token proxy - Backend URL:", backendUrl)
     console.log("[v0] Voice token proxy - Request body:", body)
 
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    }
+
     const response = await fetch(`${backendUrl}/api/voice/token`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
       body: JSON.stringify(body),
     })
 
