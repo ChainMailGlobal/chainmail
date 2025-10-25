@@ -23,10 +23,38 @@ export default function VoiceRealtimeMini({
   const remoteAudioRef = React.useRef<HTMLAudioElement | null>(null)
   const dcRef = React.useRef<RTCDataChannel | null>(null)
   const activeRef = React.useRef(false)
+  const audioContainerRef = React.useRef<HTMLDivElement | null>(null)
   const [active, setActive] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [status, setStatus] = React.useState<string>("Ready")
   const [isTransmitting, setIsTransmitting] = React.useState(false)
+  const [needsUnmute, setNeedsUnmute] = React.useState(false)
+
+  React.useEffect(() => {
+    if (!remoteAudioRef.current) {
+      const audio = document.createElement("audio")
+      audio.autoplay = true
+      audio.playsInline = true
+      audio.controls = false
+      audio.style.display = "none"
+      audio.volume = 1.0
+      audio.muted = false
+      remoteAudioRef.current = audio
+
+      if (audioContainerRef.current) {
+        audioContainerRef.current.appendChild(audio)
+      }
+
+      console.log("[v0] VoiceRealtimeMini - Created persistent audio element")
+    }
+
+    return () => {
+      // Cleanup on unmount
+      if (remoteAudioRef.current && audioContainerRef.current?.contains(remoteAudioRef.current)) {
+        audioContainerRef.current.removeChild(remoteAudioRef.current)
+      }
+    }
+  }, [])
 
   React.useEffect(() => {
     if (autoStart && !active && !activeRef.current) {
@@ -35,12 +63,28 @@ export default function VoiceRealtimeMini({
     }
   }, [autoStart])
 
+  function handleUnmute() {
+    if (remoteAudioRef.current) {
+      remoteAudioRef.current.muted = false
+      remoteAudioRef.current.volume = 1.0
+      remoteAudioRef.current
+        .play()
+        .then(() => {
+          console.log("[v0] VoiceRealtimeMini - Audio unmuted and playing")
+          setNeedsUnmute(false)
+        })
+        .catch((e) => {
+          console.warn("[v0] VoiceRealtimeMini - Unmute failed:", e)
+        })
+    }
+  }
+
   async function start() {
     setError(null)
     setStatus("Initializing...")
+    setNeedsUnmute(false)
     try {
       console.log("[v0] VoiceRealtimeMini - Starting voice session with preset:", voicePreset)
-      console.log("[v0] VoiceRealtimeMini - Calling /api/voice/token endpoint")
 
       const pc = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] })
       pcRef.current = pc
@@ -54,21 +98,24 @@ export default function VoiceRealtimeMini({
         console.log("[v0] VoiceRealtimeMini - ICE connection state:", pc.iceConnectionState)
       }
 
-      // Remote audio sink
       const remoteStream = new MediaStream()
       if (remoteAudioRef.current) {
         remoteAudioRef.current.srcObject = remoteStream
         remoteAudioRef.current.volume = 1.0
         remoteAudioRef.current.muted = false
       }
+
       pc.ontrack = (e) => {
         console.log("[v0] VoiceRealtimeMini - Received remote audio track")
-        e.streams[0]?.getAudioTracks().forEach(() => {})
         e.streams.forEach((s) => s.getTracks().forEach((t) => remoteStream.addTrack(t)))
         setStatus("Audio connected")
-        remoteAudioRef.current?.play().catch((e) => {
-          console.warn("[v0] VoiceRealtimeMini - Auto-play blocked:", e)
-        })
+
+        if (remoteAudioRef.current) {
+          remoteAudioRef.current.play().catch((e) => {
+            console.warn("[v0] VoiceRealtimeMini - Auto-play blocked:", e.message)
+            setNeedsUnmute(true)
+          })
+        }
       }
 
       // Mic
@@ -76,20 +123,18 @@ export default function VoiceRealtimeMini({
       console.log("[v0] VoiceRealtimeMini - Requesting microphone access...")
       const local = await navigator.mediaDevices.getUserMedia({ audio: true })
       localStreamRef.current = local
-      console.log("[v0] VoiceRealtimeMini - Microphone access granted, tracks:", local.getTracks().length)
+      console.log("[v0] VoiceRealtimeMini - Microphone access granted")
       for (const track of local.getTracks()) {
         pc.addTrack(track, local)
-        console.log("[v0] VoiceRealtimeMini - Added local audio track:", track.label)
       }
 
-      // Data channel for sending speak events
+      // Data channel
       const dc = pc.createDataChannel("oai-events")
       dcRef.current = dc
 
       dc.onopen = () => {
         console.log("[v0] VoiceRealtimeMini - Data channel opened")
         setStatus("Voice ready - speak now!")
-        remoteAudioRef.current?.play().catch(() => {})
       }
       dc.onclose = () => {
         console.log("[v0] VoiceRealtimeMini - Data channel closed")
@@ -99,20 +144,18 @@ export default function VoiceRealtimeMini({
         console.error("[v0] VoiceRealtimeMini - Data channel error:", e)
       }
       dc.onmessage = (e) => {
-        console.log("[v0] VoiceRealtimeMini - Received message from OpenAI:", e.data.substring(0, 100))
+        const msg = e.data.substring(0, 100)
+        console.log("[v0] VoiceRealtimeMini - Received message from OpenAI:", msg)
         setIsTransmitting(true)
         setTimeout(() => setIsTransmitting(false), 1000)
       }
 
-      // Create local offer
+      // Create offer
       setStatus("Creating offer...")
       const offer = await pc.createOffer({ offerToReceiveAudio: true })
       await pc.setLocalDescription(offer)
 
       setStatus("Getting voice token...")
-      console.log("[v0] VoiceRealtimeMini - Requesting voice token from /api/voice/token...")
-
-      // Get ephemeral client secret for gpt-realtime-mini
       const tokenResp = await fetch("/api/voice/token", {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -120,42 +163,27 @@ export default function VoiceRealtimeMini({
       })
 
       console.log("[v0] VoiceRealtimeMini - Token response status:", tokenResp.status)
-      console.log("[v0] VoiceRealtimeMini - Token response content-type:", tokenResp.headers.get("content-type"))
 
-      const tokenText = await tokenResp.text().catch(() => "")
+      const tokenText = await tokenResp.text()
       let tokenPayload: any = null
-      if (tokenText) {
-        try {
-          tokenPayload = JSON.parse(tokenText)
-          console.log("[v0] VoiceRealtimeMini - Token payload received:", tokenPayload)
-        } catch {
-          console.error("[v0] VoiceRealtimeMini - Failed to parse token response:", tokenText.substring(0, 200))
-          tokenPayload = { detail: tokenText }
-        }
+      try {
+        tokenPayload = JSON.parse(tokenText)
+      } catch {
+        console.error("[v0] VoiceRealtimeMini - Failed to parse token response")
+        tokenPayload = { detail: tokenText }
       }
 
       if (!tokenResp.ok) {
         const message =
-          tokenPayload?.detail ??
-          tokenPayload?.error ??
-          `Voice token request failed (${tokenResp.status}). Check that AGENT_BACKEND_BASE is set and /api/voice/token endpoint is working.`
-        console.error("[v0] VoiceRealtimeMini - Token request failed:", message)
+          tokenPayload?.detail ?? tokenPayload?.error ?? `Voice token request failed (${tokenResp.status})`
         throw new Error(message)
       }
 
       if (!tokenPayload?.client_secret?.value) {
-        const message =
-          tokenPayload?.detail ??
-          tokenPayload?.error ??
-          "No realtime client secret returned from backend. The /api/voice/token endpoint may not be configured correctly."
-        console.error("[v0] VoiceRealtimeMini - Missing client secret:", message)
-        throw new Error(message)
+        throw new Error("No realtime client secret returned from backend")
       }
 
       setStatus("Connecting to OpenAI...")
-      console.log("[v0] VoiceRealtimeMini - Connecting to OpenAI Realtime API...")
-
-      // Send SDP to OpenAI Realtime, receive answer
       const r = await fetch("https://api.openai.com/v1/realtime?model=gpt-realtime-mini", {
         method: "POST",
         headers: {
@@ -166,48 +194,39 @@ export default function VoiceRealtimeMini({
         body: offer.sdp || "",
       })
 
-      console.log("[v0] VoiceRealtimeMini - OpenAI response status:", r.status)
-
       if (!r.ok) {
         const errorText = await r.text()
-        console.error("[v0] VoiceRealtimeMini - OpenAI connection failed:", errorText)
-        throw new Error(`OpenAI Realtime connection failed (${r.status}): ${errorText}`)
+        throw new Error(`OpenAI connection failed (${r.status}): ${errorText}`)
       }
 
       const answer = await r.text()
-      console.log("[v0] VoiceRealtimeMini - Received SDP answer from OpenAI")
       await pc.setRemoteDescription({ type: "answer", sdp: answer })
 
       setStatus("Voice active")
-      console.log("[v0] VoiceRealtimeMini - Voice session established successfully")
+      console.log("[v0] VoiceRealtimeMini - Voice session established")
 
       activeRef.current = true
       setActive(true)
+
       if (onReady) {
         onReady({
           speak: async (text: string) => {
             try {
               const chan = dcRef.current
               if (!activeRef.current || !chan || chan.readyState !== "open") {
-                console.warn("[v0] VoiceRealtimeMini - Cannot speak: channel not ready", {
-                  active: activeRef.current,
-                  hasChannel: !!chan,
-                  readyState: chan?.readyState,
-                })
+                console.warn("[v0] VoiceRealtimeMini - Cannot speak: channel not ready")
                 return
               }
               console.log("[v0] VoiceRealtimeMini - Sending speak command:", text.substring(0, 50))
               const payload = { type: "response.create", response: { instructions: String(text || "") } }
               chan.send(JSON.stringify(payload))
+
               if (remoteAudioRef.current) {
                 remoteAudioRef.current.muted = false
+                remoteAudioRef.current.volume = 1.0
                 await remoteAudioRef.current.play().catch((e) => {
-                  console.warn("[v0] VoiceRealtimeMini - Play failed:", e)
-                  // Try to unmute and play again
-                  if (remoteAudioRef.current) {
-                    remoteAudioRef.current.muted = false
-                    remoteAudioRef.current.play().catch(() => {})
-                  }
+                  console.warn("[v0] VoiceRealtimeMini - Play failed:", e.message)
+                  setNeedsUnmute(true)
                 })
               }
             } catch (e) {
@@ -218,12 +237,11 @@ export default function VoiceRealtimeMini({
           isActive: () => activeRef.current,
         })
       }
+
       if (remoteAudioRef.current) {
-        remoteAudioRef.current.muted = false
-        remoteAudioRef.current.volume = 1.0
-        await remoteAudioRef.current.play().catch((e) => {
-          console.warn("[v0] VoiceRealtimeMini - Initial auto-play blocked:", e)
-          console.log("[v0] VoiceRealtimeMini - User may need to interact with page to enable audio")
+        remoteAudioRef.current.play().catch((e) => {
+          console.warn("[v0] VoiceRealtimeMini - Initial play blocked:", e.message)
+          setNeedsUnmute(true)
         })
       }
     } catch (e: any) {
@@ -231,10 +249,6 @@ export default function VoiceRealtimeMini({
       const errorMsg = e?.message || String(e)
       setError(errorMsg)
       setStatus("Error")
-      console.error("[v0] VoiceRealtimeMini - Full error details:", {
-        message: errorMsg,
-        stack: e?.stack,
-      })
       if (onError) {
         onError(errorMsg)
       }
@@ -245,6 +259,7 @@ export default function VoiceRealtimeMini({
   function stop() {
     console.log("[v0] VoiceRealtimeMini - Stopping voice session")
     setIsTransmitting(false)
+    setNeedsUnmute(false)
     try {
       pcRef.current?.getSenders().forEach((s) => s.track?.stop())
       pcRef.current?.close()
@@ -265,7 +280,8 @@ export default function VoiceRealtimeMini({
 
   return (
     <div style={{ display: "grid", gap: 8, maxWidth: 260 }}>
-      <audio ref={remoteAudioRef} autoPlay playsInline controls={false} />
+      <div ref={audioContainerRef} style={{ display: "none" }} />
+
       {!autoStart && (
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           {!active ? <button onClick={start}>{buttonLabel}</button> : <button onClick={stop}>{stopLabel}</button>}
@@ -282,6 +298,24 @@ export default function VoiceRealtimeMini({
           )}
         </div>
       )}
+
+      {needsUnmute && active && (
+        <button
+          onClick={handleUnmute}
+          style={{
+            padding: "8px 16px",
+            backgroundColor: "#3b82f6",
+            color: "white",
+            border: "none",
+            borderRadius: 4,
+            cursor: "pointer",
+            fontWeight: 600,
+          }}
+        >
+          🔊 Click to Enable Audio
+        </button>
+      )}
+
       {active && !error && (
         <div style={{ color: "#059669", fontSize: 12, padding: 8, backgroundColor: "#d1fae5", borderRadius: 4 }}>
           Status: {status}
