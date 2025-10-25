@@ -37,8 +37,6 @@ export default function VoiceRealtimeMini({
   const dcRef = React.useRef<RTCDataChannel | null>(null)
   const activeRef = React.useRef(false)
   const audioContainerRef = React.useRef<HTMLDivElement | null>(null)
-  const functionCallBufferRef = React.useRef<string>("")
-  const currentFunctionNameRef = React.useRef<string>("")
   const isSpeakingResponseRef = React.useRef(false)
   const [active, setActive] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
@@ -105,7 +103,7 @@ export default function VoiceRealtimeMini({
     }
   }
 
-  async function handleChatTurn(message: string) {
+  async function handleChatTurn(callId: string, message: string) {
     try {
       console.log("[v0] VoiceRealtimeMini - Handling chat turn:", message.substring(0, 50))
 
@@ -127,24 +125,22 @@ export default function VoiceRealtimeMini({
 
       console.log("[v0] VoiceRealtimeMini - Got chat response:", reply.substring(0, 50))
 
-      isSpeakingResponseRef.current = true
-
       const chan = dcRef.current
       if (activeRef.current && chan && chan.readyState === "open") {
-        const functionResult = {
-          type: "conversation.item.create",
-          item: {
-            type: "function_call_output",
-            call_id: `call_${Date.now()}`,
-            output: JSON.stringify({ response: reply }),
-          },
-        }
-        chan.send(JSON.stringify(functionResult))
+        isSpeakingResponseRef.current = true
 
-        const createResponse = {
-          type: "response.create",
-        }
-        chan.send(JSON.stringify(createResponse))
+        chan.send(
+          JSON.stringify({
+            type: "conversation.item.create",
+            item: {
+              type: "function_call_output",
+              call_id: callId,
+              output: JSON.stringify({ response: reply }),
+            },
+          }),
+        )
+
+        chan.send(JSON.stringify({ type: "response.create" }))
 
         setTimeout(() => {
           isSpeakingResponseRef.current = false
@@ -224,34 +220,29 @@ export default function VoiceRealtimeMini({
           const event = JSON.parse(e.data)
           console.log("[v0] VoiceRealtimeMini - Event type:", event.type)
 
-          if (isSpeakingResponseRef.current && event.type?.includes("function_call")) {
+          if (isSpeakingResponseRef.current && event.type === "conversation.item.completed") {
             console.log("[v0] VoiceRealtimeMini - Ignoring function call during response playback")
             return
           }
 
-          if (event.type === "response.function_call_arguments.delta") {
-            functionCallBufferRef.current += event.delta || ""
-          }
+          if (event.type === "conversation.item.completed") {
+            const item = event.item
+            if (item?.type === "function_call" && item?.name === "cmra_chat_turn") {
+              console.log("[v0] VoiceRealtimeMini - Function call completed:", item.name)
+              console.log("[v0] VoiceRealtimeMini - Function arguments:", item.arguments)
 
-          if (event.type === "response.function_call_arguments.done") {
-            const functionName = event.name || currentFunctionNameRef.current
-            currentFunctionNameRef.current = functionName
-
-            console.log("[v0] VoiceRealtimeMini - Function call done:", functionName)
-            console.log("[v0] VoiceRealtimeMini - Function arguments:", functionCallBufferRef.current)
-
-            if (functionName === "cmra_chat_turn") {
               try {
-                const args = JSON.parse(functionCallBufferRef.current || "{}")
-                const message = args.message || args.user_message || functionCallBufferRef.current
-                handleChatTurn(message)
-              } catch {
-                handleChatTurn(functionCallBufferRef.current)
+                const args = typeof item.arguments === "string" ? JSON.parse(item.arguments) : item.arguments
+                const message = args.message || args.user_message || ""
+                const callId = item.call_id || `call_${Date.now()}`
+
+                if (message) {
+                  handleChatTurn(callId, message)
+                }
+              } catch (err) {
+                console.error("[v0] VoiceRealtimeMini - Failed to parse function arguments:", err)
               }
             }
-
-            functionCallBufferRef.current = ""
-            currentFunctionNameRef.current = ""
           }
 
           if (event.type?.includes("audio") || event.type?.includes("response")) {
@@ -373,8 +364,6 @@ export default function VoiceRealtimeMini({
     console.log("[v0] VoiceRealtimeMini - Stopping voice session")
     setIsTransmitting(false)
     setNeedsUnmute(false)
-    functionCallBufferRef.current = ""
-    currentFunctionNameRef.current = ""
     isSpeakingResponseRef.current = false
     try {
       pcRef.current?.getSenders().forEach((s) => s.track?.stop())
