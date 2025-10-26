@@ -1,6 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { sendEmail } from "@/lib/email/send-email"
+import { Resend } from "resend"
 import { getCustomerInviteEmail } from "@/lib/email/templates"
+
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,24 +12,49 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    const inviteUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://mailboxhero.pro"}/form1583/complete?token=${token}`
+    const expiresAt = new Date()
+    expiresAt.setDate(expiresAt.getDate() + 30)
 
-    const emailHtml = getCustomerInviteEmail({
+    const inviteLink = `${process.env.NEXT_PUBLIC_SITE_URL || "https://mailboxhero.pro"}/form1583/complete?token=${token}`
+
+    const emailTemplate = getCustomerInviteEmail({
       customerName: `${firstName} ${lastName}`,
-      inviteUrl,
+      inviteLink, // Changed from inviteUrl
       cmraName: cmraName || "Your CMRA Location",
-      expiresInDays: 30,
+      expiresAt: expiresAt.toISOString(), // Changed from expiresInDays
     })
 
-    await sendEmail({
-      to: email,
-      subject: "Complete Your USPS Form 1583 - Action Required",
-      html: emailHtml,
-    })
+    console.log("[v0] Sending test invite email to:", email)
 
-    return NextResponse.json({ success: true })
+    if (resend) {
+      await resend.emails.send({
+        from: "MailboxHero Pro <noreply@mailboxhero.pro>",
+        to: email,
+        subject: emailTemplate.subject,
+        html: emailTemplate.html,
+        text: emailTemplate.text,
+      })
+      console.log("[v0] Test invite email sent successfully via Resend")
+    } else {
+      console.log("[v0] RESEND_API_KEY not configured. Email would be sent:", {
+        to: email,
+        subject: emailTemplate.subject,
+      })
+    }
+
+    return NextResponse.json({
+      success: true,
+      inviteLink,
+      message: resend ? "Email sent successfully" : "RESEND_API_KEY not configured (check logs)",
+    })
   } catch (error) {
     console.error("[v0] Error sending test invite email:", error)
-    return NextResponse.json({ error: "Failed to send email" }, { status: 500 })
+    return NextResponse.json(
+      {
+        error: "Failed to send email",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
+    )
   }
 }
