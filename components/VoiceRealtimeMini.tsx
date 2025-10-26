@@ -236,21 +236,24 @@ export default function VoiceRealtimeMini({
           const event = JSON.parse(e.data)
           console.log("[v0] VoiceRealtimeMini - Event type:", event.type)
 
-          if (isSpeakingResponseRef.current && event.type === "conversation.item.completed") {
+          if (isSpeakingResponseRef.current && event.type === "response.function_call_arguments.done") {
             console.log("[v0] VoiceRealtimeMini - Ignoring function call during response playback")
             return
           }
 
-          if (event.type === "conversation.item.completed") {
-            const item = event.item
-            if (item?.type === "function_call" && item?.name === "cmra_chat_turn") {
-              console.log("[v0] VoiceRealtimeMini - Function call completed:", item.name)
+          if (event.type === "response.function_call_arguments.done") {
+            console.log("[v0] VoiceRealtimeMini - Function call arguments done")
+
+            // Extract function call details from the event
+            if (event.item?.name === "cmra_chat_turn" || event.name === "cmra_chat_turn") {
+              const item = event.item || event
+              console.log("[v0] VoiceRealtimeMini - Function call:", item.name)
               console.log("[v0] VoiceRealtimeMini - Function arguments:", item.arguments)
 
               try {
                 const args = typeof item.arguments === "string" ? JSON.parse(item.arguments) : item.arguments
                 const message = args.message || args.user_message || ""
-                const callId = item.call_id || `call_${Date.now()}`
+                const callId = item.call_id || event.call_id || `call_${Date.now()}`
 
                 if (message) {
                   handleChatTurn(callId, message)
