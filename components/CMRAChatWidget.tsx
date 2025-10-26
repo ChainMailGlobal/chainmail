@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
-import { X, Send, Paperclip, Shield } from "@/lib/icons"
+import { X, Send, Paperclip, Shield, Mic, MessageSquare } from "@/lib/icons"
 import VoiceRealtimeMini from "./VoiceRealtimeMini"
 
 interface Message {
@@ -41,6 +41,8 @@ export default function CMRAChatWidget() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const isTypingRef = useRef(false)
+  const [chatMode, setChatMode] = useState<"voice" | "text" | null>(null)
+  const [showModeSelection, setShowModeSelection] = useState(false)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -125,21 +127,33 @@ export default function CMRAChatWidget() {
   const startChat = (continueSession = false) => {
     if (continueSession && sessionId) {
       loadHistory()
+      setShowModeSelection(true)
     } else {
       if (!continueSession) {
         setSessionId(null)
         localStorage.removeItem("cmra_session_id")
       }
-      setIsChatStarted(true)
+      setShowModeSelection(true)
+    }
+  }
+
+  const handleModeSelection = (mode: "voice" | "text") => {
+    console.log("[v0] User selected mode:", mode)
+    setChatMode(mode)
+    setShowModeSelection(false)
+    setIsChatStarted(true)
+
+    setMessages([
+      {
+        id: "welcome",
+        text: "Hello! I'm your CMRAgent assistant. I can help you complete your USPS Form 1583 with full witness verification. How can I assist you today?",
+        sender: "agent",
+        timestamp: new Date(),
+      },
+    ])
+
+    if (mode === "voice") {
       setAutoStartVoice(true)
-      setMessages([
-        {
-          id: "welcome",
-          text: "Hello! I'm your CMRAgent assistant. I can help you complete your USPS Form 1583 with full witness verification. How can I assist you today?",
-          sender: "agent",
-          timestamp: new Date(),
-        },
-      ])
     }
   }
 
@@ -448,6 +462,8 @@ export default function CMRAChatWidget() {
     setAutoStartVoice(false)
     setSessionId(null)
     setTranscript([])
+    setChatMode(null)
+    setShowModeSelection(false)
   }
 
   return (
@@ -576,6 +592,31 @@ export default function CMRAChatWidget() {
                 {hasExistingSession ? "Start New Chat" : "Start Chat Now"}
               </button>
             </div>
+          ) : showModeSelection ? (
+            <div className="p-6 sm:p-8 text-center flex-1 flex flex-col justify-center overflow-y-auto">
+              <div className="mb-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Choose Your Chat Mode</h3>
+                <p className="text-sm text-gray-600">How would you like to communicate?</p>
+              </div>
+
+              <div className="space-y-3">
+                <button
+                  onClick={() => handleModeSelection("voice")}
+                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-4 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-3 group"
+                >
+                  <Mic className="w-6 h-6" />
+                  <span>Start Voice Chat</span>
+                </button>
+
+                <button
+                  onClick={() => handleModeSelection("text")}
+                  className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-4 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-3 group"
+                >
+                  <MessageSquare className="w-6 h-6" />
+                  <span>Start Text Chat</span>
+                </button>
+              </div>
+            </div>
           ) : (
             <>
               <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50" onClick={handleChatAreaClick}>
@@ -642,38 +683,40 @@ export default function CMRAChatWidget() {
                 <div ref={messagesEndRef} />
               </div>
 
-              <div className="flex-shrink-0 px-4 py-3 bg-white border-t border-gray-100">
-                {voiceError && (
-                  <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-sm text-red-800 font-medium">Voice Error:</p>
-                    <p className="text-xs text-red-600 mt-1">{voiceError}</p>
+              {chatMode === "voice" && (
+                <div className="flex-shrink-0 px-4 py-3 bg-white border-t border-gray-100">
+                  {voiceError && (
+                    <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                      <p className="text-sm text-red-800 font-medium">Voice Error:</p>
+                      <p className="text-xs text-red-600 mt-1">{voiceError}</p>
+                    </div>
+                  )}
+                  <div className="hidden">
+                    <VoiceRealtimeMini
+                      voicePreset="alloy"
+                      buttonLabel="Start Voice"
+                      stopLabel="Stop Voice"
+                      autoStart={autoStartVoice}
+                      sessionId={sessionId || undefined}
+                      onReady={async (api) => {
+                        speakRef.current = api.speak
+                        setVoiceOn(true)
+                        setVoiceError(null)
+                        setAutoStartVoice(false)
+                        console.log("[v0] Voice session ready")
+                      }}
+                      onError={(error) => {
+                        setVoiceError(error)
+                        setVoiceOn(false)
+                        setAutoStartVoice(false)
+                      }}
+                      onTranscriptUpdate={(newTranscript) => {
+                        setTranscript(newTranscript)
+                      }}
+                    />
                   </div>
-                )}
-                <div className="hidden">
-                  <VoiceRealtimeMini
-                    voicePreset="alloy"
-                    buttonLabel="Start Voice"
-                    stopLabel="Stop Voice"
-                    autoStart={autoStartVoice}
-                    sessionId={sessionId || undefined}
-                    onReady={async (api) => {
-                      speakRef.current = api.speak
-                      setVoiceOn(true)
-                      setVoiceError(null)
-                      setAutoStartVoice(false)
-                      console.log("[v0] Voice session ready")
-                    }}
-                    onError={(error) => {
-                      setVoiceError(error)
-                      setVoiceOn(false)
-                      setAutoStartVoice(false)
-                    }}
-                    onTranscriptUpdate={(newTranscript) => {
-                      setTranscript(newTranscript)
-                    }}
-                  />
                 </div>
-              </div>
+              )}
 
               <div className="flex-shrink-0 p-4 bg-white border-t border-gray-200">
                 <div className="flex gap-2">
@@ -684,8 +727,8 @@ export default function CMRAChatWidget() {
                     onChange={handleInputChange}
                     onKeyPress={handleKeyPress}
                     onFocus={handleInputFocus}
-                    placeholder="Type your message or speak..."
-                    autoFocus
+                    placeholder={chatMode === "voice" ? "Type to override voice..." : "Type your message..."}
+                    autoFocus={chatMode === "text"}
                     className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
                   />
                   <button
@@ -697,7 +740,7 @@ export default function CMRAChatWidget() {
                     <Send className="w-5 h-5" />
                   </button>
                 </div>
-                {voiceOn && (
+                {chatMode === "voice" && voiceOn && (
                   <div className="mt-2 flex items-center justify-center gap-2 text-xs text-indigo-600">
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                     <span>Voice active - listening</span>
