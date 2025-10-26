@@ -1,8 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { Resend } from "resend"
+import { sendEmailFromAPI } from "@/lib/email/resend-client"
 import { getCustomerInviteEmail } from "@/lib/email/templates"
-
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,33 +17,24 @@ export async function POST(request: NextRequest) {
 
     const emailTemplate = getCustomerInviteEmail({
       customerName: `${firstName} ${lastName}`,
-      inviteLink, // Changed from inviteUrl
+      inviteLink,
       cmraName: cmraName || "Your CMRA Location",
-      expiresAt: expiresAt.toISOString(), // Changed from expiresInDays
+      expiresAt: expiresAt.toISOString(),
     })
 
     console.log("[v0] Sending test invite email to:", email)
 
-    if (resend) {
-      await resend.emails.send({
-        from: "MailboxHero Pro <noreply@mailboxhero.pro>",
-        to: email,
-        subject: emailTemplate.subject,
-        html: emailTemplate.html,
-        text: emailTemplate.text,
-      })
-      console.log("[v0] Test invite email sent successfully via Resend")
-    } else {
-      console.log("[v0] RESEND_API_KEY not configured. Email would be sent:", {
-        to: email,
-        subject: emailTemplate.subject,
-      })
-    }
+    await sendEmailFromAPI({
+      to: email,
+      subject: emailTemplate.subject,
+      html: emailTemplate.html,
+      text: emailTemplate.text,
+    })
 
     return NextResponse.json({
       success: true,
       inviteLink,
-      message: resend ? "Email sent successfully" : "RESEND_API_KEY not configured (check logs)",
+      message: "Email sent successfully",
     })
   } catch (error) {
     console.error("[v0] Error sending test invite email:", error)

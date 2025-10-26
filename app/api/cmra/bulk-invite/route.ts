@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { sendEmail } from "@/lib/email/send-email"
+import { sendEmailFromAPI } from "@/lib/email/resend-client"
 import { getCustomerInviteEmail } from "@/lib/email/templates"
 
 export async function POST(request: NextRequest) {
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
           expiresAt: expiresAt.toISOString(),
         })
 
-        await sendEmail({
+        await sendEmailFromAPI({
           to: customer.email,
           subject: template.subject,
           html: template.html,
