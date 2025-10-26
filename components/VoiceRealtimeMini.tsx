@@ -455,91 +455,69 @@ export default function VoiceRealtimeMini({
   }
 
   return (
-    <div style={{ display: "grid", gap: 8, maxWidth: 260 }}>
+    <div className="space-y-3">
       {transcript.length > 0 && (
-        <div
-          style={{
-            maxHeight: 200,
-            overflowY: "auto",
-            padding: 8,
-            backgroundColor: "#f9fafb",
-            borderRadius: 8,
-            fontSize: 12,
-            border: "1px solid #e5e7eb",
-          }}
-        >
+        <div className="max-h-32 overflow-y-auto p-2 bg-white rounded-lg border border-indigo-200 space-y-2">
           {transcript.map((item, idx) => (
             <div
               key={idx}
-              style={{
-                marginBottom: 8,
-                padding: 6,
-                backgroundColor: item.role === "user" ? "#dbeafe" : "#f3e8ff",
-                borderRadius: 6,
-              }}
+              className={`text-xs p-2 rounded ${
+                item.role === "user" ? "bg-blue-50 text-blue-900" : "bg-purple-50 text-purple-900"
+              }`}
             >
-              <div style={{ fontWeight: 600, marginBottom: 2, color: item.role === "user" ? "#1e40af" : "#6b21a8" }}>
-                {item.role === "user" ? "You" : "AI"}:
-              </div>
-              <div style={{ color: "#374151" }}>{item.text}</div>
+              <div className="font-semibold mb-1">{item.role === "user" ? "You said:" : "AI said:"}</div>
+              <div>{item.text}</div>
             </div>
           ))}
         </div>
       )}
 
       {!autoStart && (
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          {!active ? <button onClick={start}>{buttonLabel}</button> : <button onClick={stop}>{stopLabel}</button>}
-          {isTransmitting && (
-            <div
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: "50%",
-                backgroundColor: "#10b981",
-                animation: "pulse 1s infinite",
-              }}
-            />
+        <div className="flex gap-2 items-center">
+          {!active ? (
+            <button
+              onClick={start}
+              className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+            >
+              {buttonLabel}
+            </button>
+          ) : (
+            <button
+              onClick={stop}
+              className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+            >
+              {stopLabel}
+            </button>
           )}
+          {isTransmitting && <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />}
         </div>
       )}
 
       {needsUnmute && active && (
         <button
           onClick={handleUnmute}
-          style={{
-            padding: "8px 16px",
-            backgroundColor: "#3b82f6",
-            color: "white",
-            border: "none",
-            borderRadius: 4,
-            cursor: "pointer",
-            fontWeight: 600,
-          }}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
         >
           🔊 Click to Enable Audio
         </button>
       )}
 
       {active && !error && (
-        <div style={{ color: "#059669", fontSize: 12, padding: 8, backgroundColor: "#d1fae5", borderRadius: 4 }}>
-          Status: {status}
-          <div style={{ marginTop: 4, fontSize: 11, opacity: 0.8 }}>
-            {isTransmitting ? "🔊 Audio playing..." : "Speak into your microphone"}
-          </div>
+        <div className="text-xs text-green-700 bg-green-50 p-2 rounded border border-green-200">
+          <div className="font-medium">{status}</div>
+          <div className="opacity-75 mt-1">{isTransmitting ? "🔊 Audio playing..." : "Speak into your microphone"}</div>
         </div>
       )}
+
       {error && (
-        <div style={{ color: "#b91c1c", fontSize: 12, padding: 8, backgroundColor: "#fee2e2", borderRadius: 4 }}>
-          <div style={{ fontWeight: 600, marginBottom: 4 }}>Voice Error:</div>
+        <div className="text-xs text-red-700 bg-red-50 p-2 rounded border border-red-200">
+          <div className="font-semibold mb-1">Voice Error:</div>
           <div>{error}</div>
         </div>
       )}
-      {!error && !active && !autoStart && (
-        <div style={{ color: "#6b7280", fontSize: 12 }}>Requires mic permission and HTTPS. Click to start.</div>
-      )}
+
       {autoStart && !active && !error && (
-        <div style={{ color: "#6366f1", fontSize: 12, padding: 8, backgroundColor: "#e0e7ff", borderRadius: 4 }}>
+        <div className="text-xs text-indigo-700 bg-indigo-50 p-2 rounded border border-indigo-200">
           Starting voice session...
         </div>
       )}

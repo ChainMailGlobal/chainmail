@@ -27,7 +27,6 @@ export default function CMRAChatWidget() {
     }
   }, [isOpen])
 
-  const [chatMode, setChatMode] = useState<"voice" | "text" | null>(null)
   const [isChatStarted, setIsChatStarted] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [inputValue, setInputValue] = useState("")
@@ -36,7 +35,6 @@ export default function CMRAChatWidget() {
   const [hasExistingSession, setHasExistingSession] = useState(false)
   const [isLoadingHistory, setIsLoadingHistory] = useState(false)
   const [voiceOn, setVoiceOn] = useState(false)
-  const [showVoiceControls, setShowVoiceControls] = useState(false)
   const [voiceError, setVoiceError] = useState<string | null>(null)
   const [autoStartVoice, setAutoStartVoice] = useState(false)
   const [showDocumentTypeModal, setShowDocumentTypeModal] = useState(false)
@@ -45,6 +43,7 @@ export default function CMRAChatWidget() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const isTypingRef = useRef(false)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -69,13 +68,23 @@ export default function CMRAChatWidget() {
   }, [sessionId])
 
   useEffect(() => {
-    if (isOpen && isChatStarted && inputRef.current) {
-      inputRef.current.focus()
+    if (isOpen && isChatStarted && inputRef.current && !voiceOn) {
+      if (!isTypingRef.current) {
+        inputRef.current.focus()
+      }
     }
-  }, [isOpen, isChatStarted, messages.length])
+  }, [isOpen, isChatStarted, voiceOn])
+
+  const handleInputFocus = () => {
+    if (inputRef.current) {
+      setTimeout(() => {
+        inputRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
+      }, 300)
+    }
+  }
 
   const handleChatAreaClick = () => {
-    if (isChatStarted && inputRef.current) {
+    if (isChatStarted && inputRef.current && !voiceOn) {
       inputRef.current.focus()
     }
   }
@@ -125,6 +134,7 @@ export default function CMRAChatWidget() {
         localStorage.removeItem("cmra_session_id")
       }
       setIsChatStarted(true)
+      setAutoStartVoice(true)
       setMessages([
         {
           id: "welcome",
@@ -149,6 +159,7 @@ export default function CMRAChatWidget() {
 
     setMessages((prev) => [...prev, userMessage])
     setInputValue("")
+    isTypingRef.current = false
     setIsLoading(true)
 
     try {
@@ -197,27 +208,31 @@ export default function CMRAChatWidget() {
     } finally {
       setIsLoading(false)
       setTimeout(() => {
-        inputRef.current?.focus()
+        if (inputRef.current && !voiceOn) {
+          inputRef.current.focus()
+        }
       }, 100)
     }
   }
 
   const handleVoiceToggle = () => {
     console.log("[v0] CMRAChatWidget - Voice button clicked, current state:", {
-      showVoiceControls,
       voiceOn,
       autoStartVoice,
     })
     setVoiceError(null)
-    const newShowVoice = !showVoiceControls
-    setShowVoiceControls(newShowVoice)
-    if (newShowVoice) {
-      console.log("[v0] CMRAChatWidget - Enabling voice controls with auto-start")
+    const newVoiceOn = !voiceOn
+    if (newVoiceOn) {
+      console.log("[v0] CMRAChatWidget - Enabling voice with auto-start")
       setAutoStartVoice(true)
+      inputRef.current?.blur()
     } else {
-      console.log("[v0] CMRAChatWidget - Disabling voice controls")
+      console.log("[v0] CMRAChatWidget - Disabling voice")
       setAutoStartVoice(false)
       setVoiceOn(false)
+      setTimeout(() => {
+        inputRef.current?.focus()
+      }, 100)
     }
   }
 
@@ -398,16 +413,12 @@ export default function CMRAChatWidget() {
     setShowDocumentTypeModal(true)
     setPendingCameraCapture(false)
 
-    // Store the file temporarily
     const tempFile = file
 
-    // Wait for user selection
     const handleSelection = (documentType: "photo_id" | "proof_address") => {
       setShowDocumentTypeModal(false)
       uploadFile(tempFile, documentType)
     }
-
-    // This will be handled by the modal buttons
     ;(window as any).__pendingFileUpload = handleSelection
   }
 
@@ -417,19 +428,9 @@ export default function CMRAChatWidget() {
     }
   }
 
-  const handleModeSelection = (mode: "voice" | "text") => {
-    console.log("[v0] User selected mode:", mode)
-    setChatMode(mode)
-
-    if (mode === "voice") {
-      // Auto-start voice mode
-      setShowVoiceControls(true)
-      setAutoStartVoice(true)
-      setIsChatStarted(true)
-    } else {
-      // Start text mode
-      startChat(false)
-    }
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value)
+    isTypingRef.current = e.target.value.length > 0
   }
 
   useEffect(() => {
@@ -443,14 +444,12 @@ export default function CMRAChatWidget() {
   const handleClose = () => {
     console.log("[v0] Closing chat and clearing session")
     setIsOpen(false)
-    setChatMode(null)
     setIsChatStarted(false)
     setMessages([])
     setVoiceOn(false)
-    setShowVoiceControls(false)
     setVoiceError(null)
     setAutoStartVoice(false)
-    setSessionId(null) // Clear session ID
+    setSessionId(null)
   }
 
   return (
@@ -536,7 +535,6 @@ export default function CMRAChatWidget() {
 
       {isOpen && (
         <div className="fixed inset-x-4 bottom-4 sm:bottom-6 sm:right-6 sm:left-auto z-[9999] sm:w-[420px] rounded-2xl shadow-2xl bg-white border border-gray-200 overflow-hidden flex flex-col h-[90vh] max-h-[600px]">
-          {/* Header */}
           <div className="flex-shrink-0 flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
             <div className="flex items-center gap-3">
               <div className="relative">
@@ -559,62 +557,12 @@ export default function CMRAChatWidget() {
             </button>
           </div>
 
-          {!chatMode ? (
-            <div className="p-6 sm:p-8 text-center flex-1 flex flex-col justify-center overflow-y-auto">
-              <div className="relative inline-block mb-4 sm:mb-6 mx-auto">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg">
-                  <Shield className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
-                </div>
-              </div>
-
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-3">Welcome to CMRAi</h2>
-
-              <p className="text-gray-600 text-sm leading-relaxed mb-6 sm:mb-8">
-                Choose how you'd like to complete your USPS Form 1583 with full witness verification.
-              </p>
-
-              <div className="space-y-4">
-                <button
-                  onClick={() => handleModeSelection("voice")}
-                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-5 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl flex items-center justify-between group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
-                      <Mic className="w-6 h-6" />
-                    </div>
-                    <div className="text-left">
-                      <div className="font-bold text-lg">Start Voice Chat</div>
-                      <div className="text-sm opacity-90">Speak naturally with AI assistance</div>
-                    </div>
-                  </div>
-                  <div className="text-2xl opacity-50 group-hover:opacity-100 transition-opacity">→</div>
-                </button>
-
-                <button
-                  onClick={() => handleModeSelection("text")}
-                  className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 active:from-blue-800 active:to-cyan-800 text-white px-6 py-3.5 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
-                      <Send className="w-6 h-6" />
-                    </div>
-                    <div className="text-left">
-                      <div className="font-bold text-lg">Start Text Chat</div>
-                      <div className="text-sm opacity-90">Type your responses at your own pace</div>
-                    </div>
-                  </div>
-                  <div className="text-2xl opacity-50 transition-opacity">→</div>
-                </button>
-              </div>
-
-              <p className="text-xs text-gray-500 mt-6">Both modes include camera and document upload capabilities</p>
-            </div>
-          ) : !isChatStarted ? (
+          {!isChatStarted ? (
             <div className="p-6 sm:p-8 text-center flex-1 flex flex-col justify-center overflow-y-auto">
               {hasExistingSession && (
                 <button
                   onClick={() => startChat(true)}
-                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 active:from-indigo-800 active:to-purple-800 text-white px-6 py-3.5 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl"
+                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 active:from-indigo-800 active:to-purple-800 text-white px-6 py-3.5 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl mb-3"
                 >
                   Continue Conversation
                 </button>
@@ -678,66 +626,51 @@ export default function CMRAChatWidget() {
                 <div ref={messagesEndRef} />
               </div>
 
-              {showVoiceControls && (
-                <div className="flex-shrink-0 px-4 py-3 bg-indigo-50 border-t border-indigo-100">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-indigo-900">Voice Controls</span>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => {
-                          setShowVoiceControls(false)
-                          setVoiceError(null)
-                          setAutoStartVoice(false)
-                          setVoiceOn(false)
-                          setChatMode("text")
-                        }}
-                        className="text-indigo-600 hover:text-indigo-800 text-xs font-medium px-2 py-1 rounded bg-white hover:bg-indigo-50 transition-colors"
-                      >
-                        Switch to Text
-                      </button>
-                      <button
-                        onClick={() => {
-                          setShowVoiceControls(false)
-                          setVoiceError(null)
-                          setAutoStartVoice(false)
-                          setVoiceOn(false)
-                        }}
-                        className="text-indigo-600 hover:text-indigo-800 text-xs"
-                      >
-                        Hide
-                      </button>
-                    </div>
+              <div className="flex-shrink-0 px-4 py-3 bg-indigo-50 border-t border-indigo-100">
+                {voiceError && (
+                  <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-sm text-red-800 font-medium">Voice Error:</p>
+                    <p className="text-xs text-red-600 mt-1">{voiceError}</p>
                   </div>
-                  {voiceError && (
-                    <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                      <p className="text-sm text-red-800 font-medium">Voice Error:</p>
-                      <p className="text-xs text-red-600 mt-1">{voiceError}</p>
-                      <p className="text-xs text-red-500 mt-2">
-                        Make sure AGENT_BACKEND_BASE is set and the backend /api/voice/token endpoint is working.
-                      </p>
+                )}
+                {voiceOn && (
+                  <div className="mb-2 flex items-center justify-between p-2 bg-indigo-100 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      <span className="text-xs text-indigo-700 font-medium">Voice Active - Listening</span>
                     </div>
-                  )}
-                  <VoiceRealtimeMini
-                    voicePreset="alloy"
-                    buttonLabel="Start Voice"
-                    stopLabel="Stop Voice"
-                    autoStart={autoStartVoice}
-                    sessionId={sessionId || undefined}
-                    onReady={async (api) => {
-                      speakRef.current = api.speak
-                      setVoiceOn(true)
-                      setVoiceError(null)
-                      setAutoStartVoice(false)
-                      console.log("[v0] Voice session ready")
-                    }}
-                    onError={(error) => {
-                      setVoiceError(error)
-                      setVoiceOn(false)
-                      setAutoStartVoice(false)
-                    }}
-                  />
-                </div>
-              )}
+                    <button
+                      onClick={() => {
+                        setVoiceOn(false)
+                        setAutoStartVoice(false)
+                        setTimeout(() => inputRef.current?.focus(), 100)
+                      }}
+                      className="text-xs text-indigo-600 hover:text-indigo-800 font-medium underline"
+                    >
+                      Type instead
+                    </button>
+                  </div>
+                )}
+                <VoiceRealtimeMini
+                  voicePreset="alloy"
+                  buttonLabel="Start Voice"
+                  stopLabel="Stop Voice"
+                  autoStart={autoStartVoice}
+                  sessionId={sessionId || undefined}
+                  onReady={async (api) => {
+                    speakRef.current = api.speak
+                    setVoiceOn(true)
+                    setVoiceError(null)
+                    setAutoStartVoice(false)
+                    console.log("[v0] Voice session ready")
+                  }}
+                  onError={(error) => {
+                    setVoiceError(error)
+                    setVoiceOn(false)
+                    setAutoStartVoice(false)
+                  }}
+                />
+              </div>
 
               <div className="flex-shrink-0 px-4 py-2 bg-white border-t border-gray-100">
                 <div className="flex gap-2 justify-center">
@@ -745,7 +678,7 @@ export default function CMRAChatWidget() {
                     onClick={handleVoiceToggle}
                     disabled={isLoading}
                     className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                      showVoiceControls
+                      voiceOn
                         ? "text-indigo-600 bg-indigo-50"
                         : "text-gray-600 hover:text-indigo-600 hover:bg-indigo-50"
                     }`}
@@ -788,12 +721,12 @@ export default function CMRAChatWidget() {
                     ref={inputRef}
                     type="text"
                     value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
+                    onChange={handleInputChange}
                     onKeyPress={handleKeyPress}
-                    placeholder="Type your message..."
-                    disabled={isLoading}
+                    onFocus={handleInputFocus}
+                    placeholder={voiceOn ? "Or type your message here..." : "Type your message here..."}
                     autoFocus
-                    className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
                   />
                   <button
                     onClick={sendMessage}
