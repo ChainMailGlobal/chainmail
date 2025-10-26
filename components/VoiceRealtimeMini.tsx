@@ -27,7 +27,10 @@ export default function VoiceRealtimeMini({
       sessionId,
     })
     return () => {
-      console.log("[v0] VoiceRealtimeMini - Component unmounting")
+      console.log("[v0] VoiceRealtimeMini - Component unmounting, cleaning up connection")
+      if (activeRef.current) {
+        stop()
+      }
     }
   }, [])
 
@@ -43,6 +46,7 @@ export default function VoiceRealtimeMini({
   const [status, setStatus] = React.useState<string>("Ready")
   const [isTransmitting, setIsTransmitting] = React.useState(false)
   const [needsUnmute, setNeedsUnmute] = React.useState(false)
+  const [transcript, setTranscript] = React.useState<Array<{ role: "user" | "assistant"; text: string }>>([])
 
   React.useEffect(() => {
     if (!remoteAudioRef.current) {
@@ -53,19 +57,18 @@ export default function VoiceRealtimeMini({
       audio.style.display = "none"
       audio.volume = 1.0
       audio.muted = false
+      audio.id = "voice-realtime-audio" // Add ID for debugging
       remoteAudioRef.current = audio
 
-      if (audioContainerRef.current) {
-        audioContainerRef.current.appendChild(audio)
-      }
+      // Append to document.body instead of component container
+      document.body.appendChild(audio)
 
-      console.log("[v0] VoiceRealtimeMini - Created persistent audio element")
+      console.log("[v0] VoiceRealtimeMini - Created persistent audio element in document.body")
     }
 
+    // Don't remove audio element on unmount - let it persist
     return () => {
-      if (remoteAudioRef.current && audioContainerRef.current?.contains(remoteAudioRef.current)) {
-        audioContainerRef.current.removeChild(remoteAudioRef.current)
-      }
+      console.log("[v0] VoiceRealtimeMini - Component unmounting (audio element persists)")
     }
   }, [])
 
@@ -142,25 +145,16 @@ export default function VoiceRealtimeMini({
 
         chan.send(
           JSON.stringify({
-            type: "conversation.item.create",
-            item: {
-              type: "message",
-              role: "assistant",
-              content: [
-                {
-                  type: "text",
-                  text: reply,
-                },
-              ],
+            type: "response.create",
+            response: {
+              modalities: ["text", "audio"],
             },
           }),
         )
 
-        chan.send(JSON.stringify({ type: "response.create" }))
-
         setTimeout(() => {
           isSpeakingResponseRef.current = false
-        }, 2000)
+        }, 3000)
       }
     } catch (e: any) {
       console.error("[v0] VoiceRealtimeMini - Chat turn failed:", e)
@@ -223,6 +217,38 @@ export default function VoiceRealtimeMini({
       dc.onopen = () => {
         console.log("[v0] VoiceRealtimeMini - Data channel opened")
         setStatus("Voice ready - speak now!")
+
+        console.log("[v0] VoiceRealtimeMini - Triggering initial greeting")
+        setTimeout(() => {
+          if (activeRef.current && dcRef.current?.readyState === "open") {
+            const chan = dcRef.current
+            // Add a user message to start the conversation
+            chan.send(
+              JSON.stringify({
+                type: "conversation.item.create",
+                item: {
+                  type: "message",
+                  role: "user",
+                  content: [
+                    {
+                      type: "input_text",
+                      text: "Hello",
+                    },
+                  ],
+                },
+              }),
+            )
+            // Trigger OpenAI to respond
+            chan.send(
+              JSON.stringify({
+                type: "response.create",
+                response: {
+                  modalities: ["text", "audio"],
+                },
+              }),
+            )
+          }
+        }, 500)
       }
       dc.onclose = () => {
         console.log("[v0] VoiceRealtimeMini - Data channel closed")
@@ -235,6 +261,26 @@ export default function VoiceRealtimeMini({
         try {
           const event = JSON.parse(e.data)
           console.log("[v0] VoiceRealtimeMini - Event type:", event.type)
+
+          if (event.type === "error") {
+            console.error("[v0] VoiceRealtimeMini - ERROR EVENT:", JSON.stringify(event, null, 2))
+            setError(event.error?.message || event.message || "Unknown error from OpenAI")
+            setStatus("Error occurred")
+          }
+
+          if (event.type === "conversation.item.input_audio_transcription.completed") {
+            const userText = event.transcript || ""
+            if (userText) {
+              setTranscript((prev) => [...prev, { role: "user", text: userText }])
+            }
+          }
+
+          if (event.type === "response.audio_transcript.done") {
+            const assistantText = event.transcript || ""
+            if (assistantText) {
+              setTranscript((prev) => [...prev, { role: "assistant", text: assistantText }])
+            }
+          }
 
           if (isSpeakingResponseRef.current && event.type === "response.function_call_arguments.done") {
             console.log("[v0] VoiceRealtimeMini - Ignoring function call during response playback")
@@ -397,6 +443,12 @@ export default function VoiceRealtimeMini({
       localStreamRef.current?.getTracks().forEach((t) => t.stop())
     } catch {}
     localStreamRef.current = null
+
+    if (remoteAudioRef.current) {
+      remoteAudioRef.current.srcObject = null
+      remoteAudioRef.current.pause()
+    }
+
     activeRef.current = false
     setActive(false)
     setStatus("Ready")
@@ -404,7 +456,36 @@ export default function VoiceRealtimeMini({
 
   return (
     <div style={{ display: "grid", gap: 8, maxWidth: 260 }}>
-      <div ref={audioContainerRef} style={{ display: "none" }} />
+      {transcript.length > 0 && (
+        <div
+          style={{
+            maxHeight: 200,
+            overflowY: "auto",
+            padding: 8,
+            backgroundColor: "#f9fafb",
+            borderRadius: 8,
+            fontSize: 12,
+            border: "1px solid #e5e7eb",
+          }}
+        >
+          {transcript.map((item, idx) => (
+            <div
+              key={idx}
+              style={{
+                marginBottom: 8,
+                padding: 6,
+                backgroundColor: item.role === "user" ? "#dbeafe" : "#f3e8ff",
+                borderRadius: 6,
+              }}
+            >
+              <div style={{ fontWeight: 600, marginBottom: 2, color: item.role === "user" ? "#1e40af" : "#6b21a8" }}>
+                {item.role === "user" ? "You" : "AI"}:
+              </div>
+              <div style={{ color: "#374151" }}>{item.text}</div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {!autoStart && (
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>

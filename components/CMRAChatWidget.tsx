@@ -514,9 +514,9 @@ export default function CMRAChatWidget() {
       )}
 
       {isOpen && (
-        <div className="fixed inset-x-4 bottom-4 sm:bottom-6 sm:right-6 sm:left-auto z-[9999] sm:w-[420px] rounded-2xl shadow-2xl bg-white border border-gray-200 overflow-hidden flex flex-col max-h-[600px]">
+        <div className="fixed inset-x-4 bottom-4 sm:bottom-6 sm:right-6 sm:left-auto z-[9999] sm:w-[420px] rounded-2xl shadow-2xl bg-white border border-gray-200 overflow-hidden flex flex-col h-[90vh] max-h-[600px]">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
+          <div className="flex-shrink-0 flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
             <div className="flex items-center gap-3">
               <div className="relative">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-md">
@@ -548,7 +548,7 @@ export default function CMRAChatWidget() {
           </div>
 
           {!chatMode ? (
-            <div className="p-6 sm:p-8 text-center flex-1 flex flex-col justify-center">
+            <div className="p-6 sm:p-8 text-center flex-1 flex flex-col justify-center overflow-y-auto">
               <div className="relative inline-block mb-4 sm:mb-6 mx-auto">
                 <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg">
                   <Shield className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
@@ -598,7 +598,7 @@ export default function CMRAChatWidget() {
               <p className="text-xs text-gray-500 mt-6">Both modes include camera and document upload capabilities</p>
             </div>
           ) : !isChatStarted ? (
-            <div className="p-6 sm:p-8 text-center flex-1 flex flex-col justify-center">
+            <div className="p-6 sm:p-8 text-center flex-1 flex flex-col justify-center overflow-y-auto">
               {hasExistingSession && (
                 <button
                   onClick={() => startChat(true)}
@@ -667,20 +667,34 @@ export default function CMRAChatWidget() {
               </div>
 
               {showVoiceControls && (
-                <div className="px-4 py-3 bg-indigo-50 border-t border-indigo-100">
+                <div className="flex-shrink-0 px-4 py-3 bg-indigo-50 border-t border-indigo-100">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium text-indigo-900">Voice Controls</span>
-                    <button
-                      onClick={() => {
-                        setShowVoiceControls(false)
-                        setVoiceError(null)
-                        setAutoStartVoice(false)
-                        setVoiceOn(false)
-                      }}
-                      className="text-indigo-600 hover:text-indigo-800 text-xs"
-                    >
-                      Hide
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          setShowVoiceControls(false)
+                          setVoiceError(null)
+                          setAutoStartVoice(false)
+                          setVoiceOn(false)
+                          setChatMode("text")
+                        }}
+                        className="text-indigo-600 hover:text-indigo-800 text-xs font-medium px-2 py-1 rounded bg-white hover:bg-indigo-50 transition-colors"
+                      >
+                        Switch to Text
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowVoiceControls(false)
+                          setVoiceError(null)
+                          setAutoStartVoice(false)
+                          setVoiceOn(false)
+                        }}
+                        className="text-indigo-600 hover:text-indigo-800 text-xs"
+                      >
+                        Hide
+                      </button>
+                    </div>
                   </div>
                   {voiceError && (
                     <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -713,7 +727,7 @@ export default function CMRAChatWidget() {
                 </div>
               )}
 
-              <div className="px-4 py-2 bg-white border-t border-gray-100">
+              <div className="flex-shrink-0 px-4 py-2 bg-white border-t border-gray-100">
                 <div className="flex gap-2 justify-center">
                   <button
                     onClick={handleVoiceToggle}
@@ -756,7 +770,7 @@ export default function CMRAChatWidget() {
                 </div>
               </div>
 
-              <div className="p-4 bg-white border-t border-gray-200">
+              <div className="flex-shrink-0 p-4 bg-white border-t border-gray-200">
                 <div className="flex gap-2">
                   <input
                     ref={inputRef}
