@@ -1,46 +1,58 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { sendEmailFromAPI } from "@/lib/email/resend-client"
-import { getCustomerInviteEmail } from "@/lib/email/templates"
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, firstName, lastName, token, cmraName } = await request.json()
+    const { email, firstName, lastName, cmraName } = await request.json()
 
-    if (!email || !firstName || !lastName || !token) {
+    if (!email || !firstName || !lastName) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    const expiresAt = new Date()
-    expiresAt.setDate(expiresAt.getDate() + 30)
+    console.log("[v0] Creating test invitation in backend for:", email)
 
-    const inviteLink = `${process.env.NEXT_PUBLIC_SITE_URL || "https://mailboxhero.pro"}/form1583/complete?token=${token}`
+    const backendUrl = process.env.AGENT_BACKEND_BASE || "https://app.mailboxhero.pro"
 
-    const emailTemplate = getCustomerInviteEmail({
-      customerName: `${firstName} ${lastName}`,
-      inviteLink,
-      cmraName: cmraName || "Your CMRA Location",
-      expiresAt: expiresAt.toISOString(),
+    // Create invitation via backend's bulk invite endpoint with single customer
+    const csvData = `first_name,last_name,email\n${firstName},${lastName},${email}`
+
+    const formData = new FormData()
+    const blob = new Blob([csvData], { type: "text/csv" })
+    formData.append("file", blob, "test-invite.csv")
+    formData.append("cmra_name", cmraName || "Test CMRA Location")
+    formData.append("cmra_address", "123 Test Street, Test City, TS 12345")
+
+    const backendResponse = await fetch(`${backendUrl}/api/form1583/bulk-invite`, {
+      method: "POST",
+      body: formData,
     })
 
-    console.log("[v0] Sending test invite email to:", email)
+    if (!backendResponse.ok) {
+      const errorText = await backendResponse.text()
+      console.error("[v0] Backend error:", errorText)
+      throw new Error(`Backend returned ${backendResponse.status}: ${errorText}`)
+    }
 
-    await sendEmailFromAPI({
-      to: email,
-      subject: emailTemplate.subject,
-      html: emailTemplate.html,
-      text: emailTemplate.text,
-    })
+    const result = await backendResponse.json()
+    console.log("[v0] Backend response:", result)
+
+    // Backend should have sent the email and returned the invitation details
+    const inviteLink = result.invitations?.[0]?.invite_link || result.invite_link
+    const token = result.invitations?.[0]?.token || result.token
+
+    console.log("[v0] Invitation created successfully")
+    console.log("[v0] Invite link:", inviteLink)
 
     return NextResponse.json({
       success: true,
       inviteLink,
-      message: "Email sent successfully",
+      token,
+      message: "Test invitation created and email sent by backend",
     })
   } catch (error) {
-    console.error("[v0] Error sending test invite email:", error)
+    console.error("[v0] Error creating test invitation:", error)
     return NextResponse.json(
       {
-        error: "Failed to send email",
+        error: "Failed to create invitation",
         details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 },

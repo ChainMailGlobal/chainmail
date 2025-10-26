@@ -28,32 +28,9 @@ export default function TestInvitePage() {
     setMagicLink("")
 
     try {
-      // Call the backend to create an invitation
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_AGENT_BACKEND_BASE || "https://app.mailboxhero.pro"}/api/form1583/test-invite`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email,
-            first_name: firstName,
-            last_name: lastName,
-            cmra_name: "Test CMRA Location",
-            cmra_address: "123 Test St, Honolulu, HI 96815",
-          }),
-        },
-      )
+      console.log("[v0] Sending test invitation...")
 
-      if (!response.ok) {
-        throw new Error("Failed to send invitation")
-      }
-
-      const data = await response.json()
-
-      // Send the email using our Resend integration
-      const emailResponse = await fetch("/api/email/send-test-invite", {
+      const response = await fetch("/api/email/send-test-invite", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -62,18 +39,24 @@ export default function TestInvitePage() {
           email,
           firstName,
           lastName,
-          token: data.token,
           cmraName: "Test CMRA Location",
         }),
       })
 
-      if (!emailResponse.ok) {
-        throw new Error("Failed to send email")
+      console.log("[v0] Response status:", response.status)
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to send invitation")
       }
 
+      const data = await response.json()
+      console.log("[v0] Success:", data)
+
       setSuccess(true)
-      setMagicLink(`${window.location.origin}/form1583/complete?token=${data.token}`)
+      setMagicLink(data.inviteLink)
     } catch (err) {
+      console.error("[v0] Error:", err)
       setError(err instanceof Error ? err.message : "Failed to send invitation")
     } finally {
       setLoading(false)
@@ -141,7 +124,12 @@ export default function TestInvitePage() {
               </Button>
             </div>
 
-            {error && <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">{error}</div>}
+            {error && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+                <p className="font-medium">Error</p>
+                <p className="text-sm">{error}</p>
+              </div>
+            )}
 
             {success && (
               <div className="space-y-4">
