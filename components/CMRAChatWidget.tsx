@@ -432,6 +432,27 @@ export default function CMRAChatWidget() {
     }
   }
 
+  useEffect(() => {
+    if (isOpen && !sessionId) {
+      const newSessionId = `sess_${Math.random().toString(36).substring(2, 15)}`
+      console.log("[v0] Generated new session ID:", newSessionId)
+      setSessionId(newSessionId)
+    }
+  }, [isOpen, sessionId])
+
+  const handleClose = () => {
+    console.log("[v0] Closing chat and clearing session")
+    setIsOpen(false)
+    setChatMode(null)
+    setIsChatStarted(false)
+    setMessages([])
+    setVoiceOn(false)
+    setShowVoiceControls(false)
+    setVoiceError(null)
+    setAutoStartVoice(false)
+    setSessionId(null) // Clear session ID
+  }
+
   return (
     <>
       {!isOpen && (
@@ -530,16 +551,7 @@ export default function CMRAChatWidget() {
               </div>
             </div>
             <button
-              onClick={() => {
-                setIsOpen(false)
-                setChatMode(null)
-                setIsChatStarted(false)
-                setMessages([])
-                setVoiceOn(false)
-                setShowVoiceControls(false)
-                setVoiceError(null)
-                setAutoStartVoice(false)
-              }}
+              onClick={handleClose}
               className="text-gray-400 hover:text-gray-600 transition-colors p-1"
               aria-label="Close chat"
             >
@@ -580,7 +592,7 @@ export default function CMRAChatWidget() {
 
                 <button
                   onClick={() => handleModeSelection("text")}
-                  className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-5 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl flex items-center justify-between group"
+                  className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 active:from-blue-800 active:to-cyan-800 text-white px-6 py-3.5 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
@@ -591,7 +603,7 @@ export default function CMRAChatWidget() {
                       <div className="text-sm opacity-90">Type your responses at your own pace</div>
                     </div>
                   </div>
-                  <div className="text-2xl opacity-50 group-hover:opacity-100 transition-opacity">→</div>
+                  <div className="text-2xl opacity-50 transition-opacity">→</div>
                 </button>
               </div>
 

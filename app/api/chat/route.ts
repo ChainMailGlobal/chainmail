@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     }
 
     const data = await response.json()
-    console.log("[v0] MCP backend response received")
+    console.log("[v0] MCP backend response received:", JSON.stringify(data, null, 2))
 
     return new Response(JSON.stringify(data), {
       status: 200,
