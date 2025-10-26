@@ -456,43 +456,6 @@ export default function VoiceRealtimeMini({
 
   return (
     <div className="space-y-3">
-      {transcript.length > 0 && (
-        <div className="max-h-32 overflow-y-auto p-2 bg-white rounded-lg border border-indigo-200 space-y-2">
-          {transcript.map((item, idx) => (
-            <div
-              key={idx}
-              className={`text-xs p-2 rounded ${
-                item.role === "user" ? "bg-blue-50 text-blue-900" : "bg-purple-50 text-purple-900"
-              }`}
-            >
-              <div className="font-semibold mb-1">{item.role === "user" ? "You said:" : "AI said:"}</div>
-              <div>{item.text}</div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {!autoStart && (
-        <div className="flex gap-2 items-center">
-          {!active ? (
-            <button
-              onClick={start}
-              className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-            >
-              {buttonLabel}
-            </button>
-          ) : (
-            <button
-              onClick={stop}
-              className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-            >
-              {stopLabel}
-            </button>
-          )}
-          {isTransmitting && <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />}
-        </div>
-      )}
-
       {needsUnmute && active && (
         <button
           onClick={handleUnmute}
@@ -502,23 +465,10 @@ export default function VoiceRealtimeMini({
         </button>
       )}
 
-      {active && !error && (
-        <div className="text-xs text-green-700 bg-green-50 p-2 rounded border border-green-200">
-          <div className="font-medium">{status}</div>
-          <div className="opacity-75 mt-1">{isTransmitting ? "🔊 Audio playing..." : "Speak into your microphone"}</div>
-        </div>
-      )}
-
       {error && (
         <div className="text-xs text-red-700 bg-red-50 p-2 rounded border border-red-200">
           <div className="font-semibold mb-1">Voice Error:</div>
           <div>{error}</div>
-        </div>
-      )}
-
-      {autoStart && !active && !error && (
-        <div className="text-xs text-indigo-700 bg-indigo-50 p-2 rounded border border-indigo-200">
-          Starting voice session...
         </div>
       )}
     </div>

@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Upload, CheckCircle2, Loader2, Download, AlertCircle } from "@/lib/icons"
+import { Upload, CheckCircle2, Loader2, Download, AlertCircle, FileText } from "@/lib/icons"
 import { put } from "@vercel/blob"
 
 export default function Form1583DemoPage() {
@@ -127,6 +127,94 @@ export default function Form1583DemoPage() {
             access this via a secure invitation link.
           </AlertDescription>
         </Alert>
+
+        <Card className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="w-6 h-6 text-blue-600" />
+              What You Need to Know
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-white rounded-lg p-4 border border-blue-100">
+              <h3 className="font-semibold text-gray-900 mb-2">📋 What is Form 1583?</h3>
+              <p className="text-sm text-gray-700">
+                Form 1583 is a federal requirement that authorizes your CMRA (Commercial Mail Receiving Agency) to
+                receive mail on your behalf. This is a standard USPS compliance process required by law.
+              </p>
+            </div>
+
+            <div className="bg-white rounded-lg p-4 border border-blue-100">
+              <h3 className="font-semibold text-gray-900 mb-2">⏱️ How Long Does This Take?</h3>
+              <p className="text-sm text-gray-700">
+                <strong>10-15 minutes total.</strong> Upload your IDs (2 min), choose witness method (1 min), and
+                complete verification (7-12 min depending on method chosen).
+              </p>
+            </div>
+
+            <div className="bg-white rounded-lg p-4 border border-blue-100">
+              <h3 className="font-semibold text-gray-900 mb-3">✅ Step-by-Step Process:</h3>
+              <ol className="space-y-2 text-sm text-gray-700">
+                <li className="flex gap-2">
+                  <span className="font-semibold text-blue-600">1.</span>
+                  <span>
+                    <strong>Upload 2 Photo IDs</strong> - Driver's License, Passport, State ID, or Military ID
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-semibold text-blue-600">2.</span>
+                  <span>
+                    <strong>Review Pre-filled Info</strong> - Your name, email, and CMRA location are already filled in
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-semibold text-blue-600">3.</span>
+                  <span>
+                    <strong>Choose Witness Method</strong> - Remote video call (recommended) or walk-in at CMRA location
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-semibold text-blue-600">4.</span>
+                  <span>
+                    <strong>Complete Verification</strong> - Quick identity verification with authorized witness
+                  </span>
+                </li>
+              </ol>
+            </div>
+
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border border-green-200">
+              <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-green-600" />
+                Recommended: Remote AI Witness
+              </h3>
+              <p className="text-sm text-gray-700">
+                Complete everything from home via video call. No appointment needed, no travel required. Our AI-powered
+                system guides you through the entire process in under 15 minutes.
+              </p>
+            </div>
+
+            <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
+              <h3 className="font-semibold text-gray-900 mb-2">⚠️ Important Tips:</h3>
+              <ul className="space-y-1 text-sm text-gray-700">
+                <li>
+                  • Ensure your IDs are <strong>clear and legible</strong> (no glare or shadows)
+                </li>
+                <li>
+                  • All <strong>four corners</strong> of each ID must be visible in the photo
+                </li>
+                <li>
+                  • IDs must be <strong>current and not expired</strong>
+                </li>
+                <li>
+                  • Use <strong>color photos</strong> (not black and white)
+                </li>
+                <li>
+                  • Accepted formats: <strong>JPG, PNG, or PDF</strong>
+                </li>
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>

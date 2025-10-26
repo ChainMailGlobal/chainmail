@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
-import { X, Send, Paperclip, Shield, Mic, Video } from "@/lib/icons"
+import { X, Send, Paperclip, Shield } from "@/lib/icons"
 import VoiceRealtimeMini from "./VoiceRealtimeMini"
 
 interface Message {
@@ -12,21 +12,17 @@ interface Message {
   timestamp: Date
 }
 
+interface TranscriptItem {
+  role: "user" | "agent"
+  text: string
+}
+
 export default function CMRAChatWidget() {
   useEffect(() => {
     console.log("[v0] CMRAChatWidget MOUNTED")
   }, [])
 
   const [isOpen, setIsOpen] = useState(false)
-
-  useEffect(() => {
-    if (isOpen) {
-      console.log("[v0] Chat widget OPENED")
-    } else {
-      console.log("[v0] Chat widget CLOSED")
-    }
-  }, [isOpen])
-
   const [isChatStarted, setIsChatStarted] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [inputValue, setInputValue] = useState("")
@@ -39,6 +35,7 @@ export default function CMRAChatWidget() {
   const [autoStartVoice, setAutoStartVoice] = useState(false)
   const [showDocumentTypeModal, setShowDocumentTypeModal] = useState(false)
   const [pendingCameraCapture, setPendingCameraCapture] = useState(false)
+  const [transcript, setTranscript] = useState<TranscriptItem[]>([])
   const speakRef = useRef<((text: string) => Promise<void>) | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -450,6 +447,7 @@ export default function CMRAChatWidget() {
     setVoiceError(null)
     setAutoStartVoice(false)
     setSessionId(null)
+    setTranscript([])
   }
 
   return (
@@ -581,6 +579,24 @@ export default function CMRAChatWidget() {
           ) : (
             <>
               <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50" onClick={handleChatAreaClick}>
+                {transcript.length > 0 && (
+                  <div className="mb-4 p-3 bg-indigo-50 rounded-lg border border-indigo-200">
+                    <div className="text-xs font-semibold text-indigo-700 mb-2">Voice Conversation:</div>
+                    <div className="space-y-2">
+                      {transcript.map((item, idx) => (
+                        <div
+                          key={idx}
+                          className={`text-xs p-2 rounded ${
+                            item.role === "user" ? "bg-blue-50 text-blue-900" : "bg-purple-50 text-purple-900"
+                          }`}
+                        >
+                          <div className="font-semibold mb-1">{item.role === "user" ? "You said:" : "CMRAi :"}</div>
+                          <div>{item.text}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 {messages.map((message) => (
                   <div
                     key={message.id}
@@ -626,91 +642,35 @@ export default function CMRAChatWidget() {
                 <div ref={messagesEndRef} />
               </div>
 
-              <div className="flex-shrink-0 px-4 py-3 bg-indigo-50 border-t border-indigo-100">
+              <div className="flex-shrink-0 px-4 py-3 bg-white border-t border-gray-100">
                 {voiceError && (
                   <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
                     <p className="text-sm text-red-800 font-medium">Voice Error:</p>
                     <p className="text-xs text-red-600 mt-1">{voiceError}</p>
                   </div>
                 )}
-                {voiceOn && (
-                  <div className="mb-2 flex items-center justify-between p-2 bg-indigo-100 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                      <span className="text-xs text-indigo-700 font-medium">Voice Active - Listening</span>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setVoiceOn(false)
-                        setAutoStartVoice(false)
-                        setTimeout(() => inputRef.current?.focus(), 100)
-                      }}
-                      className="text-xs text-indigo-600 hover:text-indigo-800 font-medium underline"
-                    >
-                      Type instead
-                    </button>
-                  </div>
-                )}
-                <VoiceRealtimeMini
-                  voicePreset="alloy"
-                  buttonLabel="Start Voice"
-                  stopLabel="Stop Voice"
-                  autoStart={autoStartVoice}
-                  sessionId={sessionId || undefined}
-                  onReady={async (api) => {
-                    speakRef.current = api.speak
-                    setVoiceOn(true)
-                    setVoiceError(null)
-                    setAutoStartVoice(false)
-                    console.log("[v0] Voice session ready")
-                  }}
-                  onError={(error) => {
-                    setVoiceError(error)
-                    setVoiceOn(false)
-                    setAutoStartVoice(false)
-                  }}
-                />
-              </div>
-
-              <div className="flex-shrink-0 px-4 py-2 bg-white border-t border-gray-100">
-                <div className="flex gap-2 justify-center">
-                  <button
-                    onClick={handleVoiceToggle}
-                    disabled={isLoading}
-                    className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                      voiceOn
-                        ? "text-indigo-600 bg-indigo-50"
-                        : "text-gray-600 hover:text-indigo-600 hover:bg-indigo-50"
-                    }`}
-                    title="Toggle voice controls"
-                  >
-                    <Mic className="w-4 h-4" />
-                    <span className="text-xs">Voice</span>
-                  </button>
-                  <button
-                    onClick={handleCameraClick}
-                    disabled={isLoading}
-                    className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Capture photo"
-                  >
-                    <Video className="w-4 h-4" />
-                    <span className="text-xs">Camera</span>
-                  </button>
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isLoading}
-                    className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Upload file"
-                  >
-                    <Paperclip className="w-4 h-4" />
-                    <span className="text-xs">Upload</span>
-                  </button>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                    accept="image/*,.pdf,.doc,.docx"
+                <div className="hidden">
+                  <VoiceRealtimeMini
+                    voicePreset="alloy"
+                    buttonLabel="Start Voice"
+                    stopLabel="Stop Voice"
+                    autoStart={autoStartVoice}
+                    sessionId={sessionId || undefined}
+                    onReady={async (api) => {
+                      speakRef.current = api.speak
+                      setVoiceOn(true)
+                      setVoiceError(null)
+                      setAutoStartVoice(false)
+                      console.log("[v0] Voice session ready")
+                    }}
+                    onError={(error) => {
+                      setVoiceError(error)
+                      setVoiceOn(false)
+                      setAutoStartVoice(false)
+                    }}
+                    onTranscriptUpdate={(newTranscript) => {
+                      setTranscript(newTranscript)
+                    }}
                   />
                 </div>
               </div>
@@ -724,19 +684,25 @@ export default function CMRAChatWidget() {
                     onChange={handleInputChange}
                     onKeyPress={handleKeyPress}
                     onFocus={handleInputFocus}
-                    placeholder={voiceOn ? "Or type your message here..." : "Type your message here..."}
+                    placeholder="Type your message or speak..."
                     autoFocus
-                    className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                    className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
                   />
                   <button
                     onClick={sendMessage}
                     disabled={!inputValue.trim() || isLoading}
-                    className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed text-white p-2.5 rounded-xl transition-all shadow-md hover:shadow-lg"
+                    className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl transition-all shadow-md hover:shadow-lg"
                     aria-label="Send message"
                   >
                     <Send className="w-5 h-5" />
                   </button>
                 </div>
+                {voiceOn && (
+                  <div className="mt-2 flex items-center justify-center gap-2 text-xs text-indigo-600">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span>Voice active - listening</span>
+                  </div>
+                )}
               </div>
             </>
           )}

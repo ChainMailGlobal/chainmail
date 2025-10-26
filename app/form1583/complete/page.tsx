@@ -222,7 +222,95 @@ export default function CompleteForm1583Page() {
             <Shield className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Complete Your Form 1583</h1>
-          <p className="text-gray-600">Just a few more steps to get your mailbox set up</p>
+          <p className="text-gray-600">USPS-required identity verification for mailbox services</p>
+        </div>
+
+        {/* Comprehensive Instructions Section */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl shadow-lg p-6 mb-6 border border-blue-100">
+          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <FileText className="w-6 h-6 text-blue-600" />
+            What You Need to Know
+          </h2>
+
+          <div className="space-y-4">
+            <div className="bg-white rounded-xl p-4 border border-blue-100">
+              <h3 className="font-semibold text-gray-900 mb-2">📋 What is Form 1583?</h3>
+              <p className="text-sm text-gray-700">
+                Form 1583 is a federal requirement that authorizes your CMRA (Commercial Mail Receiving Agency) to
+                receive mail on your behalf. This is a standard USPS compliance process required by law.
+              </p>
+            </div>
+
+            <div className="bg-white rounded-xl p-4 border border-blue-100">
+              <h3 className="font-semibold text-gray-900 mb-2">⏱️ How Long Does This Take?</h3>
+              <p className="text-sm text-gray-700">
+                <strong>10-15 minutes total.</strong> Upload your IDs (2 min), choose witness method (1 min), and
+                complete verification (7-12 min depending on method chosen).
+              </p>
+            </div>
+
+            <div className="bg-white rounded-xl p-4 border border-blue-100">
+              <h3 className="font-semibold text-gray-900 mb-3">✅ Step-by-Step Process:</h3>
+              <ol className="space-y-2 text-sm text-gray-700">
+                <li className="flex gap-2">
+                  <span className="font-semibold text-blue-600">1.</span>
+                  <span>
+                    <strong>Upload 2 Photo IDs</strong> - Driver's License, Passport, State ID, or Military ID
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-semibold text-blue-600">2.</span>
+                  <span>
+                    <strong>Review Pre-filled Info</strong> - Your name, email, and CMRA location are already filled in
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-semibold text-blue-600">3.</span>
+                  <span>
+                    <strong>Choose Witness Method</strong> - Remote video call (recommended) or walk-in at CMRA location
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-semibold text-blue-600">4.</span>
+                  <span>
+                    <strong>Complete Verification</strong> - Quick identity verification with authorized witness
+                  </span>
+                </li>
+              </ol>
+            </div>
+
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200">
+              <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+                Recommended: Remote AI Witness
+              </h3>
+              <p className="text-sm text-gray-700">
+                Complete everything from home via video call. No appointment needed, no travel required. Our AI-powered
+                system guides you through the entire process in under 15 minutes.
+              </p>
+            </div>
+
+            <div className="bg-yellow-50 rounded-xl p-4 border border-yellow-200">
+              <h3 className="font-semibold text-gray-900 mb-2">⚠️ Important Tips:</h3>
+              <ul className="space-y-1 text-sm text-gray-700">
+                <li>
+                  • Ensure your IDs are <strong>clear and legible</strong> (no glare or shadows)
+                </li>
+                <li>
+                  • All <strong>four corners</strong> of each ID must be visible in the photo
+                </li>
+                <li>
+                  • IDs must be <strong>current and not expired</strong>
+                </li>
+                <li>
+                  • Use <strong>color photos</strong> (not black and white)
+                </li>
+                <li>
+                  • Accepted formats: <strong>JPG, PNG, or PDF</strong>
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
 
         {/* Main Form */}

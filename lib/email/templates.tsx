@@ -276,43 +276,81 @@ export function getCustomerInviteEmail(data: {
             .content { background: #f9fafb; padding: 30px; border-radius: 0 0 8px 8px; }
             .button { display: inline-block; background: #3b82f6; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
             .details { background: white; padding: 20px; border-radius: 6px; margin: 20px 0; }
+            .info-box { background: #dbeafe; border-left: 4px solid #3b82f6; padding: 15px; margin: 20px 0; border-radius: 4px; }
+            .checklist { background: white; padding: 20px; border-radius: 6px; margin: 20px 0; }
+            .checklist-item { padding: 8px 0; border-bottom: 1px solid #e5e7eb; }
+            .checklist-item:last-child { border-bottom: none; }
             .footer { text-align: center; color: #6b7280; font-size: 12px; margin-top: 30px; }
+            .highlight { background: #fef3c7; padding: 2px 6px; border-radius: 3px; font-weight: 600; }
           </style>
         </head>
         <body>
           <div class="container">
             <div class="header">
-              <h1>You're Invited!</h1>
-              <p>Complete your Form 1583 with ${data.cmraName}</p>
+              <h1>📬 You're Invited!</h1>
+              <p>Complete your USPS Form 1583 with ${data.cmraName}</p>
             </div>
             <div class="content">
               <p>${greeting},</p>
-              <p>${data.cmraName} has invited you to complete your USPS Form 1583 for mailbox services.</p>
+              <p>${data.cmraName} has invited you to complete your <strong>USPS Form 1583</strong> to activate your mailbox service.</p>
               
-              <div class="details">
-                <p><strong>What you'll need:</strong></p>
-                <ul>
-                  <li>Valid government-issued photo ID</li>
-                  <li>Proof of address (utility bill, lease, etc.)</li>
-                  <li>10-15 minutes to complete the process</li>
-                </ul>
+              <div class="info-box">
+                <p style="margin: 0;"><strong>📋 What is Form 1583?</strong></p>
+                <p style="margin: 8px 0 0 0; font-size: 14px;">Form 1583 is a USPS requirement that authorizes ${data.cmraName} to receive mail on your behalf. It's a simple identity verification process required by federal law.</p>
               </div>
 
-              <a href="${data.inviteLink}" class="button">Start Your Application</a>
+              <div class="details">
+                <p><strong>⏱️ Time Required:</strong> 10-15 minutes</p>
+                <p><strong>📅 Link Expires:</strong> ${new Date(data.expiresAt).toLocaleDateString()}</p>
+                <p><strong>💰 Cost:</strong> Free (included with your mailbox service)</p>
+              </div>
 
-              <p><strong>This invitation expires on ${new Date(data.expiresAt).toLocaleDateString()}</strong></p>
+              <div class="checklist">
+                <p style="margin: 0 0 12px 0;"><strong>✅ What You'll Need:</strong></p>
+                <div class="checklist-item">
+                  <strong>1. Two Forms of ID</strong><br/>
+                  <span style="font-size: 14px; color: #6b7280;">Driver's License, Passport, State ID, or Military ID</span>
+                </div>
+                <div class="checklist-item">
+                  <strong>2. Camera or Phone</strong><br/>
+                  <span style="font-size: 14px; color: #6b7280;">To take photos of your IDs (or upload existing photos)</span>
+                </div>
+                <div class="checklist-item">
+                  <strong>3. Choose Your Witness Method</strong><br/>
+                  <span style="font-size: 14px; color: #6b7280;">
+                    <span class="highlight">Remote (Recommended):</span> Video call from home<br/>
+                    <span class="highlight">Walk-in:</span> Visit ${data.cmraName} in person
+                  </span>
+                </div>
+              </div>
 
-              <p>The process is simple:</p>
-              <ol>
-                <li>Upload your documents</li>
-                <li>Complete Form 1583</li>
-                <li>Schedule a witness session</li>
-                <li>Get approved and start using your mailbox!</li>
-              </ol>
+              <div style="text-align: center;">
+                <a href="${data.inviteLink}" class="button" style="font-size: 16px; padding: 14px 32px;">
+                  🚀 Start Your Application
+                </a>
+              </div>
+
+              <div class="info-box" style="background: #f0fdf4; border-left-color: #10b981;">
+                <p style="margin: 0;"><strong>🎯 Simple 4-Step Process:</strong></p>
+                <ol style="margin: 8px 0 0 0; padding-left: 20px; font-size: 14px;">
+                  <li>Upload photos of your two IDs</li>
+                  <li>Review your pre-filled information</li>
+                  <li>Choose remote video witness or walk-in</li>
+                  <li>Complete witness verification (10 min)</li>
+                </ol>
+              </div>
+
+              <p style="font-size: 14px; color: #6b7280; margin-top: 24px;">
+                <strong>Need help?</strong> Contact ${data.cmraName} directly or reply to this email with any questions.
+              </p>
+
+              <p style="font-size: 14px; color: #ef4444; margin-top: 16px;">
+                ⚠️ <strong>Important:</strong> This invitation link expires on ${new Date(data.expiresAt).toLocaleDateString()}. Complete your form before then to avoid delays in activating your mailbox service.
+              </p>
             </div>
             <div class="footer">
               <p>MailboxHero Pro - USPS Compliant Mailbox Services</p>
-              <p>Questions? Contact ${data.cmraName} directly</p>
+              <p>This is an automated email from ${data.cmraName}</p>
             </div>
           </div>
         </body>
@@ -321,25 +359,44 @@ export function getCustomerInviteEmail(data: {
     text: `
 ${greeting},
 
-${data.cmraName} has invited you to complete your USPS Form 1583 for mailbox services.
+${data.cmraName} has invited you to complete your USPS Form 1583 to activate your mailbox service.
 
-What you'll need:
-- Valid government-issued photo ID
-- Proof of address (utility bill, lease, etc.)
-- 10-15 minutes to complete the process
+📋 WHAT IS FORM 1583?
+Form 1583 is a USPS requirement that authorizes ${data.cmraName} to receive mail on your behalf. It's a simple identity verification process required by federal law.
 
-Start your application: ${data.inviteLink}
+⏱️ TIME REQUIRED: 10-15 minutes
+📅 LINK EXPIRES: ${new Date(data.expiresAt).toLocaleDateString()}
+💰 COST: Free (included with your mailbox service)
 
-This invitation expires on ${new Date(data.expiresAt).toLocaleDateString()}
+✅ WHAT YOU'LL NEED:
 
-The process is simple:
-1. Upload your documents
-2. Complete Form 1583
-3. Schedule a witness session
-4. Get approved and start using your mailbox!
+1. Two Forms of ID
+   - Driver's License, Passport, State ID, or Military ID
 
+2. Camera or Phone
+   - To take photos of your IDs (or upload existing photos)
+
+3. Choose Your Witness Method
+   - Remote (Recommended): Video call from home
+   - Walk-in: Visit ${data.cmraName} in person
+
+🎯 SIMPLE 4-STEP PROCESS:
+1. Upload photos of your two IDs
+2. Review your pre-filled information
+3. Choose remote video witness or walk-in
+4. Complete witness verification (10 min)
+
+🚀 START YOUR APPLICATION:
+${data.inviteLink}
+
+NEED HELP?
+Contact ${data.cmraName} directly or reply to this email with any questions.
+
+⚠️ IMPORTANT: This invitation link expires on ${new Date(data.expiresAt).toLocaleDateString()}. Complete your form before then to avoid delays in activating your mailbox service.
+
+---
 MailboxHero Pro - USPS Compliant Mailbox Services
-Questions? Contact ${data.cmraName} directly
+This is an automated email from ${data.cmraName}
     `,
   }
 }
