@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card } from "@/components/ui/card"
+import { Download, Send } from "lucide-react"
 
 const emailTemplates = [
   { value: "session-confirmation", label: "Session Confirmation" },
@@ -18,20 +19,24 @@ const emailTemplates = [
 ]
 
 export default function EmailPreviewPage() {
-  const [selectedTemplate, setSelectedTemplate] = useState("session-confirmation")
+  const [selectedTemplate, setSelectedTemplate] = useState("customer-invite")
   const [testEmail, setTestEmail] = useState("")
   const [sending, setSending] = useState(false)
   const [message, setMessage] = useState("")
   const [previewHtml, setPreviewHtml] = useState("")
 
   const handlePreview = async () => {
-    const response = await fetch("/api/email/preview", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ template: selectedTemplate }),
-    })
-    const data = await response.json()
-    setPreviewHtml(data.html)
+    try {
+      const response = await fetch("/api/email/preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ template: selectedTemplate }),
+      })
+      const data = await response.json()
+      setPreviewHtml(data.html)
+    } catch (error) {
+      setMessage("Failed to load preview")
+    }
   }
 
   const handleSendTest = async () => {
@@ -67,12 +72,24 @@ export default function EmailPreviewPage() {
     }
   }
 
+  const downloadTemplate = () => {
+    const template =
+      "FirstName,LastName,Email,Phone,Address\nJohn,Doe,john@example.com,555-0100,123 Main St\nJane,Smith,jane@example.com,555-0101,456 Oak Ave"
+    const blob = new Blob([template], { type: "text/csv" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = "customer-invite-template.csv"
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-8">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-slate-900 mb-2">Email Template Preview</h1>
-          <p className="text-slate-600">Preview and test email templates</p>
+          <p className="text-slate-600">Preview and test email templates for customer invitations</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -114,7 +131,17 @@ export default function EmailPreviewPage() {
                   </div>
 
                   <Button onClick={handleSendTest} disabled={sending} className="w-full" variant="secondary">
-                    {sending ? "Sending..." : "Send Test Email"}
+                    {sending ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-4 w-4 mr-2" />
+                        Send Test Email
+                      </>
+                    )}
                   </Button>
 
                   {message && (
@@ -123,6 +150,14 @@ export default function EmailPreviewPage() {
                     </p>
                   )}
                 </div>
+              </div>
+
+              <div className="border-t pt-6">
+                <h3 className="font-semibold mb-4">CSV Template</h3>
+                <Button onClick={downloadTemplate} variant="outline" className="w-full bg-transparent">
+                  <Download className="h-4 w-4 mr-2" />
+                  Download CSV Template
+                </Button>
               </div>
             </div>
           </Card>
