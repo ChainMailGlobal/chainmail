@@ -1,7 +1,7 @@
 import { Header } from "@/components/header"
 import { HeroSection } from "@/components/hero-section"
 import { HowItWorksSection } from "@/components/how-it-works-section"
-import { CmraCrisisSection } from "@/components/cmra-crisis-section"
+import { CompetitiveAdvantageSection } from "@/components/competitive-advantage-section"
 import { CmraDefinitionSection } from "@/components/cmra-definition-section"
 import { FeaturesSection } from "@/components/features-section"
 import { TestimonialsSection } from "@/components/testimonials-section"
@@ -16,7 +16,7 @@ export default function HomePage() {
       <Header />
       <HeroSection />
       <HowItWorksSection />
-      <CmraCrisisSection />
+      <CompetitiveAdvantageSection />
       <CmraDefinitionSection />
       <FeaturesSection />
       <TestimonialsSection />
