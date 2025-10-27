@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card"
-import { Star } from "@/lib/icons"
+import { Star } from "lucide-react"
 
 const testimonials = [
   {

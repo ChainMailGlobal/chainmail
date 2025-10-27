@@ -1,4 +1,4 @@
-import { ExternalLink } from "@/lib/icons"
+import { ExternalLink } from "lucide-react"
 
 export function CmraDefinitionSection() {
   return (

@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Menu, X, LogIn, LogOut } from "@/lib/icons"
+import { Menu, X, LogIn, LogOut } from "lucide-react"
 import { useState, useEffect } from "react"
 import { getSupabaseClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"

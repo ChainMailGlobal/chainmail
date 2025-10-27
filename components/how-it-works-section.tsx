@@ -1,4 +1,4 @@
-import { CheckCircle, Shield } from "@/lib/icons"
+import { CheckCircle, Shield } from "lucide-react"
 
 export function HowItWorksSection() {
   return (

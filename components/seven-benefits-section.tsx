@@ -1,4 +1,4 @@
-import { CheckCircle, Zap, Shield, Clock, FileCheck, Star, Heart } from "@/lib/icons"
+import { CheckCircle, Zap, Shield, Clock, FileCheck, Star, Heart } from "lucide-react"
 
 export function SevenBenefitsSection() {
   const benefits = [

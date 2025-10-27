@@ -1,4 +1,4 @@
-import { CreditCard, Lock, MessageSquare } from "@/lib/icons"
+import { CreditCard, Lock, MessageSquare } from "lucide-react"
 
 export function WhatToExpectSection() {
   const steps = [
