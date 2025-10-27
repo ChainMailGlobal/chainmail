@@ -16,8 +16,7 @@ export default function CMRAgentPage() {
   })
 
   useEffect(() => {
-    // Simulate loading
-    setTimeout(() => setLoading(false), 500)
+    setTimeout(() => setLoading(false), 300)
   }, [])
 
   if (loading) {

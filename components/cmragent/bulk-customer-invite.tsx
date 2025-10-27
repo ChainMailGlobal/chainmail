@@ -105,18 +105,61 @@ export function BulkCustomerInvite({ cmraLocationId, cmraName }: BulkCustomerInv
     setSendResults(null)
 
     try {
-      const response = await fetch("/api/cmra/bulk-invite", {
+      const backendUrl = process.env.NEXT_PUBLIC_AGENT_BACKEND_BASE || "https://mailboxhero.pro"
+
+      const backendResponse = await fetch(`${backendUrl}/api/form1583/bulk-invite`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          cmraLocationId,
-          cmraName,
-          customers,
+          cmra_id: cmraLocationId,
+          cmra_owner_id: "current-user-id", // TODO: Get from auth context
+          clients: customers.map((c) => ({
+            first_name: c.firstName,
+            last_name: c.lastName,
+            email: c.email,
+            client_type: "individual",
+          })),
         }),
       })
 
-      const result = await response.json()
-      setSendResults(result)
+      if (!backendResponse.ok) {
+        throw new Error(`Backend returned ${backendResponse.status}`)
+      }
+
+      const backendData = await backendResponse.json()
+
+      if (!backendData.success || !backendData.invitations) {
+        throw new Error("Backend did not return invitation data")
+      }
+
+      let successCount = 0
+      let failedCount = 0
+
+      for (const invitation of backendData.invitations) {
+        try {
+          const emailResponse = await fetch("/api/email/send-customer-invite", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: invitation.client_email,
+              customerName: `${invitation.client_first_name} ${invitation.client_last_name}`,
+              cmraName: invitation.cmra_name,
+              inviteLink: invitation.invite_link,
+            }),
+          })
+
+          if (emailResponse.ok) {
+            successCount++
+          } else {
+            failedCount++
+          }
+        } catch (error) {
+          console.error("Error sending email:", error)
+          failedCount++
+        }
+      }
+
+      setSendResults({ success: successCount, failed: failedCount })
     } catch (error) {
       console.error("Error sending invites:", error)
       setValidationErrors(["Failed to send invites. Please try again."])

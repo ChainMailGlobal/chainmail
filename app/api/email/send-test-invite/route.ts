@@ -1,52 +1,79 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { Resend } from "resend"
+import { getCustomerInviteEmail } from "@/lib/email/templates"
+
+const resend = new Resend(process.env.RESEND_API_KEY)
+const backendUrl = process.env.AGENT_BACKEND_BASE || "https://mailboxhero.pro"
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, firstName, lastName, cmraName } = await request.json()
+    const { email, firstName, lastName, cmraName, cmraId, cmraOwnerId } = await request.json()
 
     if (!email || !firstName || !lastName) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    console.log("[v0] Creating test invitation in backend for:", email)
-
-    const backendUrl = process.env.AGENT_BACKEND_BASE || "https://app.mailboxhero.pro"
-
-    // Create invitation via backend's bulk invite endpoint with single customer
-    const csvData = `first_name,last_name,email\n${firstName},${lastName},${email}`
-
-    const formData = new FormData()
-    const blob = new Blob([csvData], { type: "text/csv" })
-    formData.append("file", blob, "test-invite.csv")
-    formData.append("cmra_name", cmraName || "Test CMRA Location")
-    formData.append("cmra_address", "123 Test Street, Test City, TS 12345")
+    console.log("[v0] Creating test invitation via backend for:", email)
 
     const backendResponse = await fetch(`${backendUrl}/api/form1583/bulk-invite`, {
       method: "POST",
-      body: formData,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        cmra_id: cmraId || "test-cmra-id",
+        cmra_owner_id: cmraOwnerId || "test-owner-id",
+        clients: [
+          {
+            first_name: firstName,
+            last_name: lastName,
+            email: email,
+            client_type: "individual",
+          },
+        ],
+      }),
     })
 
     if (!backendResponse.ok) {
       const errorText = await backendResponse.text()
-      console.error("[v0] Backend error:", errorText)
+      console.error("[v0] Backend error:", backendResponse.status, errorText)
       throw new Error(`Backend returned ${backendResponse.status}: ${errorText}`)
     }
 
-    const result = await backendResponse.json()
-    console.log("[v0] Backend response:", result)
+    const backendData = await backendResponse.json()
+    console.log("[v0] Backend response:", backendData)
 
-    // Backend should have sent the email and returned the invitation details
-    const inviteLink = result.invitations?.[0]?.invite_link || result.invite_link
-    const token = result.invitations?.[0]?.token || result.token
+    if (!backendData.success || !backendData.invitations || backendData.invitations.length === 0) {
+      throw new Error("Backend did not return invitation data")
+    }
 
-    console.log("[v0] Invitation created successfully")
-    console.log("[v0] Invite link:", inviteLink)
+    const invitation = backendData.invitations[0]
+
+    const emailHtml = getCustomerInviteEmail({
+      customerName: `${invitation.client_first_name} ${invitation.client_last_name}`,
+      cmraName: invitation.cmra_name || cmraName || "Test CMRA Location",
+      inviteLink: invitation.invite_link,
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+    })
+
+    const { error: emailError } = await resend.emails.send({
+      from: "MailBox Hero <noreply@mailboxhero.pro>",
+      to: invitation.client_email,
+      subject: `${invitation.cmra_name} has invited you to complete your Form 1583`,
+      html: emailHtml,
+    })
+
+    if (emailError) {
+      console.error("[v0] Email error:", emailError)
+      throw new Error(`Failed to send email: ${emailError.message}`)
+    }
+
+    console.log("[v0] Test invitation email sent successfully")
 
     return NextResponse.json({
       success: true,
-      inviteLink,
-      token,
-      message: "Test invitation created and email sent by backend",
+      inviteLink: invitation.invite_link,
+      token: invitation.token,
+      invitation_id: invitation.id,
+      message: "Test invitation created and email sent",
     })
   } catch (error) {
     console.error("[v0] Error creating test invitation:", error)

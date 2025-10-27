@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import { CheckCircle2, Loader2, Mail } from "@/lib/icons"
+import { CheckCircle2, Loader2, Mail } from "lucide-react"
 
 export default function TestInvitePage() {
   const [email, setEmail] = useState("")
