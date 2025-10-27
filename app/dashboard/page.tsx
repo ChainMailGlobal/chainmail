@@ -9,15 +9,22 @@ import { NotificationsPanel } from "@/components/dashboard/notifications-panel"
 import { SupportResources } from "@/components/dashboard/support-resources"
 import { PlanSelector } from "@/components/dashboard/plan-selector"
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: { invitation_id?: string; openChat?: string }
+}) {
   const data = await getUserDashboardData()
 
   if (data.error) {
     redirect("/login")
   }
 
+  const invitationId = searchParams.invitation_id
+  const shouldOpenChat = searchParams.openChat === "true"
+
   return (
-    <DashboardLayout user={data.user}>
+    <DashboardLayout user={data.user} invitationId={invitationId} shouldOpenChat={shouldOpenChat}>
       <div className="space-y-6">
         <WelcomePanel user={data.user} stats={data.stats} />
 

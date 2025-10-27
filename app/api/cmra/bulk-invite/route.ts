@@ -18,11 +18,13 @@ export async function POST(request: NextRequest) {
     // Send invites to all customers
     for (const customer of customers) {
       try {
+        const token = `inv_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`
+
         // Generate unique invite link (expires in 30 days)
         const expiresAt = new Date()
         expiresAt.setDate(expiresAt.getDate() + 30)
 
-        const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL || "https://mailboxhero.pro"}/signup?cmra=${cmraLocationId}&email=${encodeURIComponent(customer.email)}`
+        const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL || "https://mailboxhero.pro"}/form1583/start?token=${token}`
 
         const template = getCustomerInviteEmail({
           customerName: `${customer.firstName} ${customer.lastName}`,
@@ -39,7 +41,7 @@ export async function POST(request: NextRequest) {
         })
 
         successCount++
-        console.log(`[v0] Invite sent to ${customer.email}`)
+        console.log(`[v0] Invite sent to ${customer.email} with token: ${token}`)
       } catch (error) {
         console.error(`[v0] Failed to send invite to ${customer.email}:`, error)
         failedCount++

@@ -9,6 +9,7 @@ type VoiceRealtimeMiniProps = {
   sessionId?: string
   onReady?: (api: { speak: (text: string) => Promise<void>; stop: () => void; isActive: () => boolean }) => void
   onError?: (error: string) => void
+  onTranscriptUpdate?: (transcript: Array<{ role: "user" | "assistant"; text: string }>) => void
 }
 
 export default function VoiceRealtimeMini({
@@ -19,6 +20,7 @@ export default function VoiceRealtimeMini({
   sessionId,
   onReady,
   onError,
+  onTranscriptUpdate,
 }: VoiceRealtimeMiniProps) {
   React.useEffect(() => {
     console.log("[v0] VoiceRealtimeMini - Component mounted with props:", {
@@ -271,14 +273,26 @@ export default function VoiceRealtimeMini({
           if (event.type === "conversation.item.input_audio_transcription.completed") {
             const userText = event.transcript || ""
             if (userText) {
-              setTranscript((prev) => [...prev, { role: "user", text: userText }])
+              setTranscript((prev) => {
+                const newTranscript = [...prev, { role: "user", text: userText }]
+                if (onTranscriptUpdate) {
+                  onTranscriptUpdate(newTranscript)
+                }
+                return newTranscript
+              })
             }
           }
 
           if (event.type === "response.audio_transcript.done") {
             const assistantText = event.transcript || ""
             if (assistantText) {
-              setTranscript((prev) => [...prev, { role: "assistant", text: assistantText }])
+              setTranscript((prev) => {
+                const newTranscript = [...prev, { role: "assistant", text: assistantText }]
+                if (onTranscriptUpdate) {
+                  onTranscriptUpdate(newTranscript)
+                }
+                return newTranscript
+              })
             }
           }
 

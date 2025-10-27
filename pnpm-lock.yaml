@@ -13,7 +13,7 @@ importers:
         version: 2.0.43(zod@3.25.67)
       '@ai-sdk/rsc':
         specifier: latest
-        version: 1.0.77(react@19.0.0)(zod@3.25.67)
+        version: 1.0.81(react@19.0.0)(zod@3.25.67)
       '@emotion/is-prop-valid':
         specifier: latest
         version: 1.4.0
@@ -111,7 +111,7 @@ importers:
         specifier: latest
         version: 8.1.0
       '@supabase/ssr':
-        specifier: 0.7.0
+        specifier: latest
         version: 0.7.0(@supabase/supabase-js@2.76.1)
       '@supabase/supabase-js':
         specifier: latest
@@ -127,7 +127,7 @@ importers:
         version: 1.2.0(next@14.2.25(@opentelemetry/api@1.9.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react@19.0.0)(vue-router@4.5.1(vue@3.5.22(typescript@5.0.2)))(vue@3.5.22(typescript@5.0.2))
       ai:
         specifier: latest
-        version: 5.0.77(zod@3.25.67)
+        version: 5.0.81(zod@3.25.67)
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.20(postcss@8.5.0)
@@ -196,7 +196,7 @@ importers:
         version: 2.15.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       resend:
         specifier: latest
-        version: 6.2.2(@react-email/render@1.4.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0))
+        version: 6.3.0(@react-email/render@1.4.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0))
       server-only:
         specifier: latest
         version: 0.0.1
@@ -252,8 +252,8 @@ packages:
   '@adraffy/ens-normalize@1.10.1':
     resolution: {integrity: sha512-96Z2IP3mYmF1Xg2cDm8f1gWGf/HUVedQ3FMifV4kG/PQ4yEP51xDtRAEfhVNt5f/uzpNkZHwWQuUcu6D6K+Ekw==}
 
-  '@ai-sdk/gateway@2.0.0':
-    resolution: {integrity: sha512-Gj0PuawK7NkZuyYgO/h5kDK/l6hFOjhLdTq3/Lli1FTl47iGmwhH1IZQpAL3Z09BeFYWakcwUmn02ovIm2wy9g==}
+  '@ai-sdk/gateway@2.0.2':
+    resolution: {integrity: sha512-25F1qPqZxOw9IcV9OQCL29hV4HAFLw5bFWlzQLBi5aDhEZsTMT2rMi3umSqNaUxrrw+dLRtjOL7RbHC+WjbA/A==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
@@ -270,8 +270,8 @@ packages:
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
-  '@ai-sdk/provider-utils@3.0.12':
-    resolution: {integrity: sha512-ZtbdvYxdMoria+2SlNarEk6Hlgyf+zzcznlD55EAl+7VZvJaSg2sqPvwArY7L6TfDEDJsnCq0fdhBSkYo0Xqdg==}
+  '@ai-sdk/provider-utils@3.0.13':
+    resolution: {integrity: sha512-aXFLBLRPTUYA853MJliItefSXeJPl+mg0KSjbToP41kJ+banBmHO8ZPGLJhNqGlCU82o11TYN7G05EREKX8CkA==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
@@ -280,8 +280,8 @@ packages:
     resolution: {integrity: sha512-6o7Y2SeO9vFKB8lArHXehNuusnpddKPk7xqL7T2/b+OvXMRIXUO1rR4wcv1hAFUAT9avGZshty3Wlua/XA7TvA==}
     engines: {node: '>=18'}
 
-  '@ai-sdk/rsc@1.0.77':
-    resolution: {integrity: sha512-tsdSwJDsig8g6432NiLgBUSULn4E3Pm5+oEBTGBd8mW3GwMwm3YwKCJj2UD6TcO4NZLAsn9kGyysWvmL/GZQzg==}
+  '@ai-sdk/rsc@1.0.81':
+    resolution: {integrity: sha512-Vk4C1EpE2kygl4q3Wl4Ds6tEhO0MmuwTk+JsE8MUP3jmnIwvJBTueVjRVZyXKqGSxg8XIKFYi9CErPerCSpx6A==}
     engines: {node: '>=18'}
     peerDependencies:
       react: ^18 || ^19 || ^19.0.0-rc
@@ -1405,8 +1405,8 @@ packages:
   aes-js@4.0.0-beta.5:
     resolution: {integrity: sha512-G965FqalsNyrPqgEGON7nIx1e/OVENSgiEIzyC63haUMuvNnwIgIjMs52hlTCKhkBny7A2ORNlfY9Zu+jmGk1Q==}
 
-  ai@5.0.77:
-    resolution: {integrity: sha512-w0xP/guV27qLUR+60ru7dSDfF1Wlk6lPEHtXPBLfa8TNQ8Qc4FZ1RE9UGAdZmZU396FA6lKtP9P89Jzb5Z+Hnw==}
+  ai@5.0.81:
+    resolution: {integrity: sha512-SB7oMC9QSpIu1VLswFTZuhhpfQfrGtFBUbWLtHBkhjWZIQskjtcdEhB+N4yO9hscdc2wYtjw/tacgoxX93QWFw==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
@@ -2067,8 +2067,8 @@ packages:
   requires-port@1.0.0:
     resolution: {integrity: sha512-KigOCHcocU3XODJxsu8i/j8T9tzT4adHiecwORRQ0ZZFcp7ahwXuRU1m+yuO90C5ZUyGeGfocHDI14M3L3yDAQ==}
 
-  resend@6.2.2:
-    resolution: {integrity: sha512-EF/wUj0y/CHBDqLV9iKrNHxGV/wdJfzfEzhPbd3tXD4wtMssabgVwys7N3dv+s1EsqnXjC0uN6ylpfvWTzF4Aw==}
+  resend@6.3.0:
+    resolution: {integrity: sha512-Nmg5cFojC2E07gQ/RnlcroXpclFnlr05yQP2QNbbAhfX1Q4LBqiSd6/0t/fq95MvcuP8EDbb+Eyw1NG2P0OWgw==}
     engines: {node: '>=18'}
     peerDependencies:
       '@react-email/render': '*'
@@ -2332,10 +2332,10 @@ snapshots:
 
   '@adraffy/ens-normalize@1.10.1': {}
 
-  '@ai-sdk/gateway@2.0.0(zod@3.25.67)':
+  '@ai-sdk/gateway@2.0.2(zod@3.25.67)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.12(zod@3.25.67)
+      '@ai-sdk/provider-utils': 3.0.13(zod@3.25.67)
       '@vercel/oidc': 3.0.3
       zod: 3.25.67
 
@@ -2352,7 +2352,7 @@ snapshots:
       eventsource-parser: 3.0.6
       zod: 3.25.67
 
-  '@ai-sdk/provider-utils@3.0.12(zod@3.25.67)':
+  '@ai-sdk/provider-utils@3.0.13(zod@3.25.67)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
       '@standard-schema/spec': 1.0.0
@@ -2363,11 +2363,11 @@ snapshots:
     dependencies:
       json-schema: 0.4.0
 
-  '@ai-sdk/rsc@1.0.77(react@19.0.0)(zod@3.25.67)':
+  '@ai-sdk/rsc@1.0.81(react@19.0.0)(zod@3.25.67)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.12(zod@3.25.67)
-      ai: 5.0.77(zod@3.25.67)
+      '@ai-sdk/provider-utils': 3.0.13(zod@3.25.67)
+      ai: 5.0.81(zod@3.25.67)
       jsondiffpatch: 0.6.0
       react: 19.0.0
     optionalDependencies:
@@ -3524,11 +3524,11 @@ snapshots:
 
   aes-js@4.0.0-beta.5: {}
 
-  ai@5.0.77(zod@3.25.67):
+  ai@5.0.81(zod@3.25.67):
     dependencies:
-      '@ai-sdk/gateway': 2.0.0(zod@3.25.67)
+      '@ai-sdk/gateway': 2.0.2(zod@3.25.67)
       '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.12(zod@3.25.67)
+      '@ai-sdk/provider-utils': 3.0.13(zod@3.25.67)
       '@opentelemetry/api': 1.9.0
       zod: 3.25.67
 
@@ -4163,7 +4163,7 @@ snapshots:
 
   requires-port@1.0.0: {}
 
-  resend@6.2.2(@react-email/render@1.4.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)):
+  resend@6.3.0(@react-email/render@1.4.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)):
     dependencies:
       svix: 1.76.1
     optionalDependencies:

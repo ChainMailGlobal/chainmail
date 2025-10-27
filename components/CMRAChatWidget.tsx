@@ -17,7 +17,12 @@ interface TranscriptItem {
   text: string
 }
 
-export default function CMRAChatWidget() {
+interface CMRAChatWidgetProps {
+  invitationId?: string
+  autoOpen?: boolean
+}
+
+export default function CMRAChatWidget({ invitationId, autoOpen }: CMRAChatWidgetProps) {
   useEffect(() => {
     console.log("[v0] CMRAChatWidget MOUNTED")
   }, [])
@@ -40,6 +45,8 @@ export default function CMRAChatWidget() {
   const inputRef = useRef<HTMLInputElement>(null)
   const isTypingRef = useRef(false)
   const [chatMode, setChatMode] = useState<"voice" | "text" | null>(null)
+  const [uploadRequired, setUploadRequired] = useState(false)
+  const [uploadType, setUploadType] = useState<string | null>(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -65,6 +72,13 @@ export default function CMRAChatWidget() {
       }
     }
   }, [isOpen, isChatStarted, voiceOn])
+
+  useEffect(() => {
+    if (autoOpen && !isOpen) {
+      console.log("[v0] Auto-opening chat from invitation")
+      setIsOpen(true)
+    }
+  }, [autoOpen])
 
   const handleInputFocus = () => {
     if (inputRef.current) {
@@ -116,6 +130,19 @@ export default function CMRAChatWidget() {
 
       if (data.session_id) {
         setSessionId(data.session_id)
+      }
+
+      if (data.next) {
+        console.log("[v0] Backend next state:", data.next)
+        const nextState = data.next.toLowerCase()
+        if (nextState.includes("upload")) {
+          setUploadRequired(true)
+          setUploadType(data.next)
+          console.log("[v0] Upload required:", data.next)
+        } else {
+          setUploadRequired(false)
+          setUploadType(null)
+        }
       }
 
       const agentResponse: Message = {
@@ -314,6 +341,21 @@ export default function CMRAChatWidget() {
         setSessionId(data.session_id)
       }
 
+      if (data.next) {
+        console.log("[v0] Backend next state after upload:", data.next)
+        const nextState = data.next.toLowerCase()
+        if (nextState.includes("upload")) {
+          setUploadRequired(true)
+          setUploadType(data.next)
+        } else {
+          setUploadRequired(false)
+          setUploadType(null)
+        }
+      } else {
+        setUploadRequired(false)
+        setUploadType(null)
+      }
+
       const agentResponse: Message = {
         id: (Date.now() + 1).toString(),
         text: data.reply || "I'm here to help!",
@@ -378,6 +420,8 @@ export default function CMRAChatWidget() {
     setSessionId(null)
     setTranscript([])
     setChatMode(null)
+    setUploadRequired(false) // Clear upload requirement on close
+    setUploadType(null)
     localStorage.removeItem("cmra_session_id")
   }
 
@@ -409,6 +453,7 @@ export default function CMRAChatWidget() {
         body: JSON.stringify({
           message: "Hello",
           session_id: sessionId,
+          invitation_id: invitationId, // Send invitation_id to backend
         }),
       })
 
@@ -420,6 +465,15 @@ export default function CMRAChatWidget() {
 
       if (data.session_id) {
         setSessionId(data.session_id)
+      }
+
+      if (data.next) {
+        console.log("[v0] Backend next state from greeting:", data.next)
+        const nextState = data.next.toLowerCase()
+        if (nextState.includes("upload")) {
+          setUploadRequired(true)
+          setUploadType(data.next)
+        }
       }
 
       const agentResponse: Message = {
@@ -674,6 +728,28 @@ export default function CMRAChatWidget() {
 
               <div className="flex-shrink-0 p-4 bg-white border-t border-gray-200">
                 <div className="flex gap-2">
+                  {(uploadRequired || chatMode === "text") && (
+                    <button
+                      onClick={handleCameraClick}
+                      disabled={isLoading}
+                      className={`${
+                        uploadRequired
+                          ? "bg-indigo-100 hover:bg-indigo-200 text-indigo-700 ring-2 ring-indigo-500 animate-pulse"
+                          : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                      } disabled:bg-gray-50 disabled:cursor-not-allowed p-3 rounded-xl transition-all`}
+                      aria-label="Take photo"
+                      title={uploadRequired ? `Upload required: ${uploadType}` : "Take photo of ID or document"}
+                    >
+                      <Paperclip className="w-5 h-5" />
+                    </button>
+                  )}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
                   <input
                     ref={inputRef}
                     type="text"
@@ -694,6 +770,12 @@ export default function CMRAChatWidget() {
                     <Send className="w-5 h-5" />
                   </button>
                 </div>
+                {uploadRequired && (
+                  <div className="mt-2 flex items-center justify-center gap-2 text-xs text-indigo-600 bg-indigo-50 rounded-lg p-2">
+                    <Paperclip className="w-4 h-4 animate-bounce" />
+                    <span className="font-medium">Please upload your documents to continue</span>
+                  </div>
+                )}
                 {chatMode === "voice" && voiceOn && (
                   <div className="mt-2 flex items-center justify-center gap-2 text-xs text-indigo-600">
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>

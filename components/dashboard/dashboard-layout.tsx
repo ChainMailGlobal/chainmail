@@ -7,6 +7,7 @@ import { Home, FileText, Video, Clock, Shield, Settings, LogOut, Menu } from "lu
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { signOut } from "@/lib/actions/auth-actions"
+import CMRAChatWidget from "@/components/CMRAChatWidget"
 
 interface DashboardLayoutProps {
   children: ReactNode
@@ -15,6 +16,8 @@ interface DashboardLayoutProps {
     email?: string
     fullName: string
   }
+  invitationId?: string
+  shouldOpenChat?: boolean
 }
 
 const navigation = [
@@ -26,7 +29,7 @@ const navigation = [
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ]
 
-export function DashboardLayout({ children, user }: DashboardLayoutProps) {
+export function DashboardLayout({ children, user, invitationId, shouldOpenChat }: DashboardLayoutProps) {
   const pathname = usePathname()
   const router = useRouter()
 
@@ -111,6 +114,8 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto p-6 lg:p-8">{children}</main>
       </div>
+
+      <CMRAChatWidget invitationId={invitationId} autoOpen={shouldOpenChat} />
     </div>
   )
 }
