@@ -385,6 +385,62 @@ export default function CMRAChatWidget() {
     setChatMode(mode)
     setIsChatStarted(true)
     console.log(`[v0] Chat mode selected: ${mode}`)
+
+    if (mode === "voice") {
+      setAutoStartVoice(true)
+      setVoiceOn(true)
+    }
+
+    if (mode === "text") {
+      setTimeout(() => {
+        sendInitialGreeting()
+      }, 100)
+    }
+  }
+
+  const sendInitialGreeting = async () => {
+    setIsLoading(true)
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: "Hello",
+          session_id: sessionId,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to get greeting")
+      }
+
+      const data = await response.json()
+
+      if (data.session_id) {
+        setSessionId(data.session_id)
+      }
+
+      const agentResponse: Message = {
+        id: Date.now().toString(),
+        text: data.reply || "Aloha! I'm here to help you with USPS Form 1583. Quick process! What's your first name?",
+        sender: "agent",
+        timestamp: new Date(),
+      }
+      setMessages([agentResponse])
+    } catch (error) {
+      console.error("[v0] Error getting initial greeting:", error)
+      const errorMessage: Message = {
+        id: Date.now().toString(),
+        text: "Aloha! I'm here to help you with USPS Form 1583. Quick process! What's your first name?",
+        sender: "agent",
+        timestamp: new Date(),
+      }
+      setMessages([errorMessage])
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
