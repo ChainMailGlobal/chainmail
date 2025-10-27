@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
-import { X, Send, Paperclip, Shield, Mic, MessageSquare } from "@/lib/icons"
+import { X, Send, Paperclip, Shield } from "@/lib/icons"
 import VoiceRealtimeMini from "./VoiceRealtimeMini"
 
 interface Message {
@@ -28,8 +28,6 @@ export default function CMRAChatWidget() {
   const [inputValue, setInputValue] = useState("")
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [hasExistingSession, setHasExistingSession] = useState(false)
-  const [isLoadingHistory, setIsLoadingHistory] = useState(false)
   const [voiceOn, setVoiceOn] = useState(false)
   const [voiceError, setVoiceError] = useState<string | null>(null)
   const [autoStartVoice, setAutoStartVoice] = useState(false)
@@ -42,7 +40,6 @@ export default function CMRAChatWidget() {
   const inputRef = useRef<HTMLInputElement>(null)
   const isTypingRef = useRef(false)
   const [chatMode, setChatMode] = useState<"voice" | "text" | null>(null)
-  const [showModeSelection, setShowModeSelection] = useState(false)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -53,18 +50,13 @@ export default function CMRAChatWidget() {
   }, [messages])
 
   useEffect(() => {
-    const savedSessionId = localStorage.getItem("cmra_session_id")
-    if (savedSessionId) {
-      setSessionId(savedSessionId)
-      setHasExistingSession(true)
+    if (isOpen && !sessionId) {
+      const newSessionId = `sess_${Math.random().toString(36).substring(2, 15)}`
+      console.log("[v0] Generated new session ID:", newSessionId)
+      setSessionId(newSessionId)
+      localStorage.setItem("cmra_session_id", newSessionId)
     }
-  }, [])
-
-  useEffect(() => {
-    if (sessionId) {
-      localStorage.setItem("cmra_session_id", sessionId)
-    }
-  }, [sessionId])
+  }, [isOpen, sessionId])
 
   useEffect(() => {
     if (isOpen && isChatStarted && inputRef.current && !voiceOn) {
@@ -73,14 +65,6 @@ export default function CMRAChatWidget() {
       }
     }
   }, [isOpen, isChatStarted, voiceOn])
-
-  useEffect(() => {
-    if (isOpen && !sessionId) {
-      const newSessionId = `sess_${Math.random().toString(36).substring(2, 15)}`
-      console.log("[v0] Generated new session ID:", newSessionId)
-      setSessionId(newSessionId)
-    }
-  }, [isOpen]) // Only run when isOpen changes, not when sessionId changes
 
   const handleInputFocus = () => {
     if (inputRef.current) {
@@ -93,75 +77,6 @@ export default function CMRAChatWidget() {
   const handleChatAreaClick = () => {
     if (isChatStarted && inputRef.current && !voiceOn) {
       inputRef.current.focus()
-    }
-  }
-
-  const loadHistory = async () => {
-    if (!sessionId) return
-
-    setIsLoadingHistory(true)
-    try {
-      const response = await fetch(`/api/chat/history?session_id=${sessionId}`)
-
-      const contentType = response.headers.get("content-type")
-      if (!response.ok || !contentType?.includes("application/json")) {
-        console.log("[v0] History endpoint not available or returned non-JSON, starting fresh chat")
-        startChat()
-        return
-      }
-
-      const data = await response.json()
-
-      if (data.messages && data.messages.length > 0) {
-        const formattedMessages: Message[] = data.messages.map((msg: any, index: number) => ({
-          id: `history-${index}`,
-          text: msg.content || msg.text,
-          sender: msg.role === "user" ? "user" : "agent",
-          timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
-        }))
-        setMessages(formattedMessages)
-        setIsChatStarted(true)
-      } else {
-        startChat()
-      }
-    } catch (error) {
-      console.log("[v0] History loading failed, starting fresh chat:", error)
-      startChat()
-    } finally {
-      setIsLoadingHistory(false)
-    }
-  }
-
-  const startChat = (continueSession = false) => {
-    if (continueSession && sessionId) {
-      loadHistory()
-      setShowModeSelection(true)
-    } else {
-      if (!continueSession) {
-        setSessionId(null)
-        localStorage.removeItem("cmra_session_id")
-      }
-      setShowModeSelection(true)
-    }
-  }
-
-  const handleModeSelection = (mode: "voice" | "text") => {
-    console.log("[v0] User selected mode:", mode)
-    setChatMode(mode)
-    setShowModeSelection(false)
-    setIsChatStarted(true)
-
-    setMessages([
-      {
-        id: "welcome",
-        text: "Hello! I'm your CMRAgent assistant. I can help you complete your USPS Form 1583 with full witness verification. How can I assist you today?",
-        sender: "agent",
-        timestamp: new Date(),
-      },
-    ])
-
-    if (mode === "voice") {
-      setAutoStartVoice(true)
     }
   }
 
@@ -463,7 +378,13 @@ export default function CMRAChatWidget() {
     setSessionId(null)
     setTranscript([])
     setChatMode(null)
-    setShowModeSelection(false)
+    localStorage.removeItem("cmra_session_id")
+  }
+
+  const handleModeSelection = (mode: "voice" | "text") => {
+    setChatMode(mode)
+    setIsChatStarted(true)
+    console.log(`[v0] Chat mode selected: ${mode}`)
   }
 
   return (
@@ -573,27 +494,6 @@ export default function CMRAChatWidget() {
 
           {!isChatStarted ? (
             <div className="p-6 sm:p-8 text-center flex-1 flex flex-col justify-center overflow-y-auto">
-              {hasExistingSession && (
-                <button
-                  onClick={() => startChat(true)}
-                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 active:from-indigo-800 active:to-purple-800 text-white px-6 py-3.5 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl mb-3"
-                >
-                  Continue Conversation
-                </button>
-              )}
-              <button
-                onClick={() => startChat(false)}
-                className={`w-full ${
-                  hasExistingSession
-                    ? "bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-200"
-                    : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl"
-                } px-6 py-3.5 rounded-xl font-semibold transition-all`}
-              >
-                {hasExistingSession ? "Start New Chat" : "Start Chat Now"}
-              </button>
-            </div>
-          ) : showModeSelection ? (
-            <div className="p-6 sm:p-8 text-center flex-1 flex flex-col justify-center overflow-y-auto">
               <div className="mb-6">
                 <h3 className="text-xl font-bold text-gray-900 mb-2">Choose Your Chat Mode</h3>
                 <p className="text-sm text-gray-600">How would you like to communicate?</p>
@@ -602,18 +502,16 @@ export default function CMRAChatWidget() {
               <div className="space-y-3">
                 <button
                   onClick={() => handleModeSelection("voice")}
-                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-4 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-3 group"
+                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 active:from-indigo-800 active:to-purple-800 text-white px-6 py-3.5 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl mb-3"
                 >
-                  <Mic className="w-6 h-6" />
-                  <span>Start Voice Chat</span>
+                  Start Voice Chat
                 </button>
 
                 <button
                   onClick={() => handleModeSelection("text")}
-                  className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-4 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-3 group"
+                  className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-3.5 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl"
                 >
-                  <MessageSquare className="w-6 h-6" />
-                  <span>Start Text Chat</span>
+                  Start Text Chat
                 </button>
               </div>
             </div>
