@@ -40,7 +40,7 @@ export function HeroSection() {
             <div className="flex-1 flex justify-center flex-col items-center">
               <div className="relative w-full h-96 md:h-[500px]">
                 <img
-                  src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-08-27%20055429-KF5ibLzZ7Hfp8OWb2eUxcNCJMKgDKC.png"
+                  src="/images/design-mode/Screenshot%202025-08-27%20055429.png"
                   alt="MailboxHero PRO Storybook Cover"
                   className="w-full h-full object-cover rounded-2xl shadow-2xl border-2 border-cyan-400/30"
                 />

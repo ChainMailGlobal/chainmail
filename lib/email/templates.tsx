@@ -326,7 +326,7 @@ export function getCustomerInviteEmail(data: {
 
               <div style="text-align: center;">
                 <a href="${data.inviteLink}" class="button" style="font-size: 16px; padding: 14px 32px;">
-                  🚀 Start Your Application
+                  🚀 Complete Your Application
                 </a>
               </div>
 
@@ -364,7 +364,7 @@ ${data.cmraName} has invited you to complete your USPS Form 1583 to activate you
 📋 WHAT IS FORM 1583?
 Form 1583 is a USPS requirement that authorizes ${data.cmraName} to receive mail on your behalf. It's a simple identity verification process required by federal law.
 
-⏱️ TIME REQUIRED: 10-15 minutes
+⏱️ TIME REQUIRED: >5 minutes
 📅 LINK EXPIRES: ${new Date(data.expiresAt).toLocaleDateString()}
 💰 COST: Free (included with your mailbox service)
 
@@ -372,6 +372,7 @@ Form 1583 is a USPS requirement that authorizes ${data.cmraName} to receive mail
 
 1. Two Forms of ID
    - Driver's License, Passport, State ID, or Military ID
+   - Proof of Address Vehicle Regis, Vehicle Insur, Voter Regis.
 
 2. Camera or Phone
    - To take photos of your IDs (or upload existing photos)
@@ -384,7 +385,7 @@ Form 1583 is a USPS requirement that authorizes ${data.cmraName} to receive mail
 1. Upload photos of your two IDs
 2. Review your pre-filled information
 3. Choose remote video witness or walk-in
-4. Complete witness verification (10 min)
+4. Complete witness verification (>5 min)
 
 🚀 START YOUR APPLICATION:
 ${data.inviteLink}
