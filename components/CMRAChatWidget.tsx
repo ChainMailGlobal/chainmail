@@ -74,6 +74,14 @@ export default function CMRAChatWidget() {
     }
   }, [isOpen, isChatStarted, voiceOn])
 
+  useEffect(() => {
+    if (isOpen && !sessionId) {
+      const newSessionId = `sess_${Math.random().toString(36).substring(2, 15)}`
+      console.log("[v0] Generated new session ID:", newSessionId)
+      setSessionId(newSessionId)
+    }
+  }, [isOpen]) // Only run when isOpen changes, not when sessionId changes
+
   const handleInputFocus = () => {
     if (inputRef.current) {
       setTimeout(() => {
@@ -443,14 +451,6 @@ export default function CMRAChatWidget() {
     setInputValue(e.target.value)
     isTypingRef.current = e.target.value.length > 0
   }
-
-  useEffect(() => {
-    if (isOpen && !sessionId) {
-      const newSessionId = `sess_${Math.random().toString(36).substring(2, 15)}`
-      console.log("[v0] Generated new session ID:", newSessionId)
-      setSessionId(newSessionId)
-    }
-  }, [isOpen, sessionId])
 
   const handleClose = () => {
     console.log("[v0] Closing chat and clearing session")
